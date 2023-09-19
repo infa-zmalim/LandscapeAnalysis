@@ -5,9 +5,12 @@ import yaml
 def run_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, error = process.communicate()
-    if error:
+
+    if error and not "No resources found" in error.decode('utf-8'):
         raise Exception(error.decode('utf-8'))
+
     return output.decode('utf-8')
+
 
 def get_running_pods_in_namespaces():
     # Load clusters from clusters.yaml
