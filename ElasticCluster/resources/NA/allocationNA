@@ -1,0 +1,11 @@
+shards disk.indices disk.used disk.avail disk.total disk.percent host          ip            node
+   570       83.5gb    83.6gb    162.2gb    245.8gb           34 x.x.x.x x.x.x.x 8008702ffdfed876769219b281734741
+   570       42.3gb    42.4gb    203.4gb    245.8gb           17 x.x.x.x x.x.x.x dd836079722af5e2aabcf93a28983262
+   570       46.5gb    46.6gb    199.2gb    245.8gb           18 x.x.x.x x.x.x.x 15720f71a1d03bccf7b19b94ebf66f77
+   570       59.4gb    59.5gb    186.3gb    245.8gb           24 x.x.x.x x.x.x.x 9f3a0e3765cd89d869b96144c8d013ad
+   570         52gb    52.1gb    193.6gb    245.8gb           21 x.x.x.x  x.x.x.x  e76930a9c3e0c82c82f21c8d38a0efa0
+   570       53.5gb    53.6gb    192.1gb    245.8gb           21 x.x.x.x  x.x.x.x  8c53b99ca66ed653e5ee5b8268f9587a
+   569       88.2gb    88.3gb    157.4gb    245.8gb           35 x.x.x.x x.x.x.x e744ede0b6fdf36fd9930a0eaf26ef04
+   569       52.3gb    52.4gb    193.4gb    245.8gb           21 x.x.x.x  x.x.x.x  dbaa9284d5fd7a99913b9f6399539b1e
+   570       58.9gb      59gb    186.8gb    245.8gb           24 x.x.x.x x.x.x.x 85a6cef5a5232e6b35da10d60a3da4e3
+   570       60.9gb      61gb    184.7gb    245.8gb           24 x.x.x.x  x.x.x.x  ff660a8cc83201f373ff68a9cc031a1e
