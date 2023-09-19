@@ -1,0 +1,12 @@
+- config: "aws eks --region us-west-2 update-kubeconfig --name intcloud-ccgf-eks-devprod-usw2"
+  namespaces:
+    - "ccgf-devprod-hawk-func"
+- config: "aws eks --region us-west-2 update-kubeconfig --name intcloud-ccgf-eks-devci-usw2"
+  namespaces:
+    - "ccgf-dev-ebf"
+    - "idmcp-dev-ebf"
+    - "claire-dev-ebf"
+- config: "aws eks --region us-west-2 update-kubeconfig --name intcloud-shrd-eks-qa-usw2"
+  namespaces:
+    - "ccgf-qa-staging"
+    - "ccgf-qapatch-func"
