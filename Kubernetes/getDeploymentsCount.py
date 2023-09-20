@@ -40,9 +40,12 @@ def main():
         # Fetch and process service names for each namespace in the cluster
         for namespace in cluster["namespaces"]:
             results = get_service_names(namespace)
+            # Determine the maximum length of the service names
+            max_length = max(len(service) for service, _ in results)
             print(f"\n\n Results for namespace {namespace}:")
             for service, count in results:
-                print(f"{service}, Count: {count}")
+                # Use the string format method to align the output
+                print(f"{service},{' '*(max_length-len(service))}{count}")
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@ from config import BASE_URL
 response = requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc')
 data = response.json()
 # Set display options for a clearer output
-pd.set_option('display.width', 5000)
+#pd.set_option('display.width', 5000)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
