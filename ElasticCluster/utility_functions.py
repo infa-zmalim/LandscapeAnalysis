@@ -1,3 +1,4 @@
+import re
 def convert_size_to_mb(size):
     size_str = str(size)  # Convert the size to a string regardless of its original type
 
@@ -17,6 +18,18 @@ def convert_size_to_mb(size):
 
 # Modify volume column
 def modify_volume(value):
+    # Check if the input is a string
+    if isinstance(value, str):
+        # Remove commas from the string
+        cleaned_value = value.replace(',', '')
+
+        # Attempt to convert the string to an integer
+        try:
+            value = int(cleaned_value)
+        except ValueError:
+            # If conversion fails, return the original value as it might not be convertible
+            return value
+
     if value >= 1_000_000_000:   # Billion
         return str(value // 1_000_000_000) + 'B'
     elif value >= 1_000_000:     # Million
@@ -25,4 +38,15 @@ def modify_volume(value):
         return str(value // 1_000) + 'k'
     return str(value)
 
+# Extract TenantId from index
+def extract_tenant_id(index_value):
+    # Extract pattern based on your given example
+    parts = index_value.split('-')
+    if len(parts) > 1:
+        return parts[1]
+    return None
 
+# Use regex to extract OrgId
+def extract_org_id(index_name):
+    match = re.search(r'devprod-(.*?)-', index_name)
+    return match.group(1) if match else None

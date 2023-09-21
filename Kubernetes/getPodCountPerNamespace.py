@@ -1,17 +1,18 @@
 import subprocess
 import json
 import yaml
-import re
-from collections import Counter
 
 def run_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, error = process.communicate()
-    if error and "No resources found" not in error.decode('utf-8'):
+
+    if error and not "No resources found" in error.decode('utf-8'):
         raise Exception(error.decode('utf-8'))
+
     return output.decode('utf-8')
 
-def get_service_names_from_pods_for_all_clusters():
+
+def get_running_pods_in_namespaces():
     # Load clusters from clusters.yaml
     with open('resources/clusters.yaml', 'r') as file:
         clusters = yaml.safe_load(file)
@@ -24,32 +25,16 @@ def get_service_names_from_pods_for_all_clusters():
         namespaces_output = run_command("kubectl get namespaces -o json")
         namespaces_json = json.loads(namespaces_output)
 
-        all_service_names = []
-
         # Iterate over each namespace
         for namespace_item in namespaces_json['items']:
             namespace_name = namespace_item['metadata']['name']
 
-            # Get pods in the namespace
-            pods_output = run_command(f"kubectl get pods -n {namespace_name}")
-            lines = pods_output.strip().split('\n')[1:]  # Skip header
+            # Get the number of running pods in the current namespace
+            pods_output = run_command(f"kubectl get pods -n {namespace_name} --field-selector=status.phase==Running --no-headers")
+            pod_count = len(pods_output.strip().split('\n')) if pods_output.strip() else 0
 
-            # Extract the service name
-            for line in lines:
-                pod_name = line.split()[0]
-                service_name = re.sub(r'-\w{7}-\w{5}$', '', pod_name)
-                service_name = '-'.join(service_name.split('-')[:3])
-                all_service_names.append(service_name)
-
-        # Count occurrences of each service name
-        counter = Counter(all_service_names)
-        sorted_services = sorted(counter.items(), key=lambda x: x[1], reverse=True)
-
-        # Print results for the current cluster
-        print(f"\n\nCluster: {cluster['config'].split('--name')[-1].strip()}")
-        for service, count in sorted_services:
-            print(f"  ServiceName: {service}, Count: {count}")
-        print("\n")
+            # Output the cluster, namespace, and number of running pods
+            print(f"Cluster: {cluster['config'].split('--name')[-1].strip()}, Namespace: {namespace_name}, Running Pods: {pod_count}")
 
 if __name__ == "__main__":
-    get_service_names_from_pods_for_all_clusters()
+    get_running_pods_in_namespaces()

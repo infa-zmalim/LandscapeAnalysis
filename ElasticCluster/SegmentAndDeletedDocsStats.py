@@ -1,6 +1,6 @@
 import pandas as pd
 import requests
-from utility_functions import convert_size_to_mb,modify_volume
+from utility_functions import convert_size_to_mb, modify_volume, extract_tenant_id
 import os
 
 from config import BASE_URL
@@ -13,39 +13,50 @@ pd.set_option('display.max_colwidth', None)
 pd.set_option('display.max_rows',50000)
 
 # Fetching data from the API for deleted docs stats
-allocation_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc').json())
+indices_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc').json())
 
 #from file
-#allocation_df = pd.read_csv("resources/NA/indicesNA", sep="\s+")
+#allocation_df = pd.read_csv("resources/NA/indicesAuditNA", sep="\s+")
 
 # Replace None values with 0
-allocation_df.fillna(0, inplace=True)
+indices_df.fillna(0, inplace=True)
 
 # Convert the columns to the appropriate data type
-allocation_df["docs.count"] = allocation_df["docs.count"].astype(int)
-allocation_df["docs.deleted"] = allocation_df["docs.deleted"].astype(int)
+indices_df["docs.count"] = indices_df["docs.count"].astype(int)
+indices_df["docs.deleted"] = indices_df["docs.deleted"].astype(int)
 
 # Calculating the ratio of docs.deleted to docs.count
-allocation_df["deleted_to_count_ratio"] = (allocation_df["docs.deleted"] / allocation_df["docs.count"]) * 100
+indices_df["deleted_to_count_ratio"] = (indices_df["docs.deleted"] / indices_df["docs.count"]) * 100
 
 # Fetch data from the URL for segments stats
 segments_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/segments?v&format=json').json())
 
 #From file
-#segments_df = pd.read_csv("resources/NA/segmentsNA", sep="\s+")
+#segments_df = pd.read_csv("resources/NA/segmentsAuditNA", sep="\s+")
 
 segment_counts = segments_df.groupby('index').size().reset_index(name='segments_count')
 
 # Load the CSV data
-csv_path = "resources/tenantsVolumeAndUserName.csv"
-csv_df = pd.read_csv(csv_path)
+csv_path = "resources/DEVPROD/telemetryDEVPROD.csv"
+telemetry_df = pd.read_csv(csv_path, sep="\s+")
 
-csv_df['volume'] = csv_df['volume'].apply(modify_volume)
+telemetry_df['Objects'] = telemetry_df['Objects'].apply(modify_volume)
+
 # Merge the segment counts with the original segment data
 merged_segments_df = pd.merge(segments_df, segment_counts, on="index", how="left")
-merged_segments_df2= pd.merge(merged_segments_df,csv_df,on="index", how="left")
+
+# Apply the function to extract TenantId
+merged_segments_df['TenantId_extracted'] = merged_segments_df['index'].apply(extract_tenant_id)
+
+# Now, merge using the extracted TenantId
+merged_segments_df2 = pd.merge(merged_segments_df, telemetry_df, left_on="TenantId_extracted", right_on="TenantId", how="left")
+
+# Optionally, you can drop the 'TenantId_extracted' column if not required
+merged_segments_df2.drop(columns=['TenantId_extracted'], inplace=True)
+
 # Merge the dataframes on the 'index' column
-final_df = pd.merge(allocation_df, merged_segments_df2, on="index", how="outer")
+final_df = pd.merge(indices_df, merged_segments_df2, on="index", how="outer")
+
 
 final_df['store.size'] = final_df['store.size'].apply(convert_size_to_mb)
 final_df['pri.store.size'] = final_df['pri.store.size'].apply(convert_size_to_mb)
@@ -63,10 +74,10 @@ final_df['std_dev_size(mb)'] = final_df.groupby('index')['size'].transform('std'
 
 
 # Print the result
-print(final_df)
+#print(final_df)
 # Save the result to CSV
 
-#final_df.to_csv('../resources/CombinedStats_NA.csv', index=False)
+final_df.to_csv('resources/CombinedStats_DEVPROD.csv', index=False)
 
 
 
