@@ -1,5 +1,6 @@
 import pandas as pd
-from utility_functions import convert_size_to_mb
+from utility_functions import convert_size_to_mb, convert_to_lowercase
+
 # Define the paths to the files
 audit_cluster = "resources/DEVPROD/DEVProdIndex"
 asset_Cluster = "resources/DEVPROD//DEVPRODAudit"
@@ -13,8 +14,6 @@ pd.set_option('display.max_colwidth', None)  # Show full content of each column
 
 pd.set_option('display.max_rows', 500)  # Set max_rows to None to display all rows
 # Converting the data to a pandas DataFrame
-def convert_to_lowercase(df, column_name):
-    df[column_name] = df[column_name].str.lower()
 
 # Define the column names for the first file
 column_names_audit = [

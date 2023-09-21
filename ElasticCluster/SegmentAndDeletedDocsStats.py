@@ -1,6 +1,6 @@
 import pandas as pd
 import requests
-from utility_functions import convert_size_to_mb, modify_volume, extract_tenant_id
+from utility_functions import convert_size_to_mb, modify_volume, extract_tenant_id, convert_to_lowercase
 import os
 
 from config import BASE_URL
@@ -10,7 +10,7 @@ from config import BASE_URL
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
-pd.set_option('display.max_rows',50000)
+pd.set_option('display.max_rows', 1000)
 
 # Fetching data from the API for deleted docs stats
 indices_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc').json())
@@ -26,7 +26,7 @@ indices_df["docs.count"] = indices_df["docs.count"].astype(int)
 indices_df["docs.deleted"] = indices_df["docs.deleted"].astype(int)
 
 # Calculating the ratio of docs.deleted to docs.count
-indices_df["deleted_to_count_ratio"] = (indices_df["docs.deleted"] / indices_df["docs.count"]) * 100
+indices_df["deleted_to_count_ratio"] = round((indices_df["docs.deleted"] / indices_df["docs.count"]) * 100 , 2)
 
 # Fetch data from the URL for segments stats
 segments_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/segments?v&format=json').json())
@@ -40,7 +40,8 @@ segment_counts = segments_df.groupby('index').size().reset_index(name='segments_
 csv_path = "resources/DEVPROD/telemetryDEVPROD.csv"
 telemetry_df = pd.read_csv(csv_path, sep="\s+")
 
-telemetry_df['Objects'] = telemetry_df['Objects'].apply(modify_volume)
+telemetry_df['Total'] = telemetry_df['Total'].apply(modify_volume)
+convert_to_lowercase(telemetry_df, 'TenantId')
 
 # Merge the segment counts with the original segment data
 merged_segments_df = pd.merge(segments_df, segment_counts, on="index", how="left")
@@ -75,9 +76,15 @@ final_df['std_dev_size(mb)'] = final_df.groupby('index')['size'].transform('std'
 
 # Print the result
 #print(final_df)
-# Save the result to CSV
 
-final_df.to_csv('resources/CombinedStats_DEVPROD.csv', index=False)
+# Drop duplicates based on the 'index' column and keep the first occurrence
+unique_df = final_df.drop_duplicates(subset='index', keep='first')
+
+# Print the filtered result
+print(unique_df)
+
+
+unique_df.to_csv('resources/CombinedStats_DEVPROD.csv', index=False)
 
 
 
