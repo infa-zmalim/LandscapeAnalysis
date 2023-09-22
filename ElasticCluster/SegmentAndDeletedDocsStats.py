@@ -8,12 +8,12 @@ from config import BASE_URL, NA_API_BASE_URL, DEVPROD_API_BASE_URL, tenant_api_b
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
-pd.set_option('display.max_rows', 1000)
+pd.set_option('display.max_rows', None)
 
 # Fetching data from the API for deleted docs stats
 # indices_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc').json())
 #from file
-indices_df = pd.read_csv("resources/NA/indicesAuditNA", sep="\s+")
+indices_df = pd.read_csv("resources/NA/indicesNA", sep="\s+")
 
 # Replace None values with 0 and convert columns to appropriate data types
 indices_df.fillna(0, inplace=True)
@@ -22,9 +22,9 @@ indices_df["docs.deleted"] = indices_df["docs.deleted"].astype(int)
 indices_df["deleted_to_count_ratio"] = round((indices_df["docs.deleted"] / indices_df["docs.count"]) * 100, 2)
 
 # Fetch data from the URL for segments stats
-# segments_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/segments?v&format=json').json())
+#segments_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/segments?v&format=json').json())
 #From file
-segments_df = pd.read_csv("resources/NA/segmentsAuditNA", sep="\s+")
+segments_df = pd.read_csv("resources/NA/segmentsNA", sep="\s+",low_memory=False)
 segment_counts = segments_df.groupby('index').size().reset_index(name='segments_count')
 
 # Load the CSV data
@@ -55,8 +55,12 @@ if response.status_code == 200:
     all_tenants_data = response.json().get('value', [])
     all_tenants_df = pd.DataFrame(all_tenants_data)
     final_df = pd.merge(unique_df, all_tenants_df, left_on='TenantId', right_on='tenantId', how='left')
+    # Find tenants that are in all_tenants_df but not in unique_df
+    missing_tenants_df = all_tenants_df[~all_tenants_df['tenantId'].isin(unique_df['TenantId'])]
+    # If you want to print or store them
     final_df.drop(columns=['tenantId'], inplace=True)
 
 # Print the filtered result
-print(final_df)
-#final_df.to_csv('Output/CombinedStats_AUDIT_NA.csv', index=False)
+#print(final_df)
+final_df.to_csv('Output/CombinedStats_NA.csv', index=False)
+missing_tenants_df.to_csv('Output/MissingTenantsFromIndex_NA.csv', index=False)
