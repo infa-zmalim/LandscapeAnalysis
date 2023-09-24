@@ -2,13 +2,7 @@ import subprocess
 import json
 from collections import defaultdict
 
-from Kubernetes.utils import parse_memory
-
-
-def parse_cpu(cpu):
-    if cpu.endswith('m'):
-        return float(cpu.rstrip('m')) / 1000
-    return float(cpu)
+from Kubernetes.utils import parse_memory, parse_cpu
 
 
 def run_command(command):
@@ -49,12 +43,19 @@ def get_pods_per_node():
                 "memory_requests": memory_requests,
             })
 
+    # Calculate the maximum length for proper alignment
+    max_length = max(len(pod['namespace'] + ', ' + pod['pod_name']) for node, pods in pods_per_node.items() for pod in pods)
+
     # Print the result
+    header_format = "{:<" + str(max_length) + "} {:<30} {:<20} {:<20}"
+    row_format = "  {:<" + str(max_length) + "} {:<30} {:<20.2f} {:<20}"
+
+    print(f"{'Node':<{max_length}} PodCount, CPURequests (cores), MemoryRequests (Mi)")
+    print('-' * (max_length + 60))
     for node, pods in pods_per_node.items():
-        print(f"Node: {node}")
-        print(f"Pod Count: {len(pods)}")
+        print(header_format.format(node, len(pods), '', ''))
         for pod in pods:
-            print(f"  Namespace: {pod['namespace']}, PodName: {pod['pod_name']}, CPU Request: {pod['cpu_requests']:.2f} cores, Memory Request: {pod['memory_requests']} Mi")
+            print(row_format.format(pod['namespace'] + ', ' + pod['pod_name'], '', pod['cpu_requests'], pod['memory_requests']))
         print()
 
 if __name__ == "__main__":
