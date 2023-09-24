@@ -11,9 +11,9 @@ pd.set_option('display.max_colwidth', None)
 pd.set_option('display.max_rows', None)
 
 # Fetching data from the API for deleted docs stats
-# indices_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc').json())
+indices_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc').json())
 #from file
-indices_df = pd.read_csv("resources/NA/indicesNA", sep="\s+")
+# indices_df = pd.read_csv("resources/NA/indicesNA", sep="\s+")
 
 # Replace None values with 0 and convert columns to appropriate data types
 indices_df.fillna(0, inplace=True)
@@ -22,13 +22,13 @@ indices_df["docs.deleted"] = indices_df["docs.deleted"].astype(int)
 indices_df["deleted_to_count_ratio"] = round((indices_df["docs.deleted"] / indices_df["docs.count"]) * 100, 2)
 
 # Fetch data from the URL for segments stats
-#segments_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/segments?v&format=json').json())
+segments_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/segments?v&format=json').json())
 #From file
-segments_df = pd.read_csv("resources/NA/segmentsNA", sep="\s+",low_memory=False)
+# segments_df = pd.read_csv("resources/NA/segmentsNA", sep="\s+",low_memory=False)
 segment_counts = segments_df.groupby('index').size().reset_index(name='segments_count')
 
 # Load the CSV data
-csv_path = "resources/NA/telemetryNA.csv"
+csv_path = "resources/DEVPROD/telemetryDEVPROD.csv"
 telemetry_df = pd.read_csv(csv_path, sep="\s+")
 telemetry_df['Total'] = telemetry_df['Total'].apply(modify_volume)
 telemetry_df['TenantId_lowercase'] = telemetry_df['TenantId'].str.lower()
@@ -62,5 +62,5 @@ if response.status_code == 200:
 
 # Print the filtered result
 #print(final_df)
-final_df.to_csv('Output/CombinedStats_NA.csv', index=False)
-missing_tenants_df.to_csv('Output/MissingTenantsFromIndex_NA.csv', index=False)
+final_df.to_csv('Output/CombinedStats_DEVPROD.csv', index=False)
+missing_tenants_df.to_csv('Output/MissingTenantsFromIndex_DEVPROD.csv', index=False)

@@ -8,5 +8,5 @@ NA_API_BASE_URL = "https://cdgc-api.dm-us.informaticacloud.com"
 DEVPROD_API_BASE_URL = "https://devprod-api.hawk.mrel.infaqa.com"
 
 # tenant_api_base_url definition moved here
-tenant_api_base_url = f"{NA_API_BASE_URL}/ccgf-tms/odata/v1/Tenants"
+tenant_api_base_url = f"{DEVPROD_API_BASE_URL}/ccgf-tms/odata/v1/Tenants"
 
