@@ -1,3 +1,4 @@
+import subprocess
 def parse_memory(memory):
     if memory.endswith('Gi'):
         return float(memory.rstrip('Gi')) * 1024
@@ -18,3 +19,9 @@ def parse_cpu(cpu):
         return float(cpu.rstrip('m')) / 1000
     return float(cpu)
 
+def run_command(command):
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    output, error = process.communicate()
+    if error and "No resources found" not in error.decode('utf-8'):
+        raise Exception(error.decode('utf-8'))
+    return output.decode('utf-8')

@@ -1,16 +1,7 @@
-import subprocess
 import json
 import yaml
 
-from Kubernetes.utils import parse_cpu, parse_memory
-
-
-def run_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    output, error = process.communicate()
-    if error and "No resources found" not in error.decode('utf-8'):
-        raise Exception(error.decode('utf-8'))
-    return output.decode('utf-8')
+from Kubernetes.utils import parse_cpu, parse_memory, run_command
 
 
 def get_pod_count_and_resources_per_deployment_for_all_clusters():

@@ -1,16 +1,8 @@
-import subprocess
 import json
 from collections import defaultdict
 
-from Kubernetes.utils import parse_memory, parse_cpu
+from Kubernetes.utils import parse_memory, parse_cpu, run_command
 
-
-def run_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    output, error = process.communicate()
-    if error and "No resources found" not in error.decode('utf-8'):
-        raise Exception(error.decode('utf-8'))
-    return output.decode('utf-8')
 
 def get_pods_per_node():
     # Fetch all pods in all namespaces

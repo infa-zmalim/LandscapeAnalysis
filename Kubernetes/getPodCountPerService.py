@@ -1,15 +1,9 @@
-import subprocess
 import json
 import yaml
 import re
-from collections import Counter
 
-def run_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    output, error = process.communicate()
-    if error and "No resources found" not in error.decode('utf-8'):
-        raise Exception(error.decode('utf-8'))
-    return output.decode('utf-8')
+from Kubernetes.utils import run_command
+
 
 def get_pod_count_per_service_for_all_clusters():
     # Load clusters from clusters.yaml

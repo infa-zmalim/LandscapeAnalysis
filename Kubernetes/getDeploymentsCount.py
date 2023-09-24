@@ -1,17 +1,11 @@
-import subprocess
 import re
 from collections import Counter
 import yaml
 
+from Kubernetes.getPodCountPerDeployment import run_command
+
 with open('resources/clusters.yaml', 'r') as file:
     clusters = yaml.safe_load(file)
-
-def run_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    output, error = process.communicate()
-    if error:
-        raise Exception(error.decode('utf-8'))
-    return output.decode('utf-8')
 
 def get_service_names(namespace):
     # Fetch deployments from Kubernetes namespace

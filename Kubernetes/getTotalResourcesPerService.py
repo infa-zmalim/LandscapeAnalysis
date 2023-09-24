@@ -1,16 +1,8 @@
 import re
 import yaml
 import json
-import subprocess
 
-
-def run_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
-    out, err = process.communicate()
-    if process.returncode != 0:
-        print(f"Error executing {command}. Error: {err}")
-        return ""
-    return out.decode('utf-8')
+from Kubernetes.utils import run_command
 
 
 def get_resources_for_all_clusters():
