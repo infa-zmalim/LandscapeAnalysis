@@ -2,17 +2,14 @@ import subprocess
 import json
 import yaml
 
+from Kubernetes.utils import parse_memory
+
+
 def parse_cpu(cpu):
     if cpu.endswith('m'):
         return float(cpu.rstrip('m')) / 1000
     return float(cpu)
 
-def parse_memory(memory):
-    if memory.endswith('Gi'):
-        return float(memory.rstrip('Gi')) * 1024
-    elif memory.endswith('Mi'):
-        return float(memory.rstrip('Mi'))
-    return float(memory)
 
 def run_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
