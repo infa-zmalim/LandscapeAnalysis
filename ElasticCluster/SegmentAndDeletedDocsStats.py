@@ -62,5 +62,7 @@ if response.status_code == 200:
 
 # Print the filtered result
 #print(final_df)
-final_df.to_csv('Output/CombinedStats_DEVPROD.csv', index=False)
-missing_tenants_df.to_csv('Output/MissingTenantsFromIndex_DEVPROD.csv', index=False)
+
+# Output to a CSV
+# final_df.to_csv('Output/CombinedStats_DEVPROD.csv', index=False)
+# missing_tenants_df.to_csv('Output/MissingTenantsFromIndexButInTMS_DEVPROD.csv', index=False)
