@@ -67,10 +67,10 @@ def get_pod_count_and_resources_per_deployment_for_all_clusters():
         flattened_deployments.sort(key=lambda x: x[2]['count'], reverse=True)
 
         for namespace, service, info in flattened_deployments:
-            row_data = [namespace, service, info['count'], f"{info['cpu']:.2f}", f"{info['memory']:.2f}", f"{info['cpu_limit']:.2f}", f"{info['memory_limit']:.2f}"]
+            row_data = [namespace, service, info['count'], f"{info['cpu']:.2f}", f"{info['memory']}", f"{info['cpu_limit']:.2f}", f"{info['memory_limit']}"]
 
             if info['cpu'] != info['cpu_limit'] or info['memory'] != info['memory_limit']:
-                row_data = [f"\033[1m{data}\033[0m" for data in row_data]
+                row_data = [f"\033[91m{data}\033[0m" for data in row_data]
 
             table.add_row(row_data)
 
