@@ -1,9 +1,8 @@
 import json
 import yaml
 import re
-
+from prettytable import PrettyTable
 from Kubernetes.utils import run_command
-
 
 def get_pod_count_per_service_for_all_clusters():
     # Load clusters from clusters.yaml
@@ -31,20 +30,25 @@ def get_pod_count_per_service_for_all_clusters():
             # Extract the deployment name and desired replicas
             for deployment in deployments_json['items']:
                 deployment_name = deployment['metadata']['name']
-                # Extracting service name from deployment name
-                service_name = re.sub(r'-\d+-\d+-\d+-\d+$', '', deployment_name)
+                # Extracting service name from deployment name using a temporary variable
+                temp_service_name = re.sub(r'-\d+-\d+-\d+-\d+$', '', deployment_name)
+                service_name = f"{namespace_name}/{temp_service_name}"
                 desired_replicas = deployment['spec'].get('replicas', 0)
                 service_pod_counts[service_name] = service_pod_counts.get(service_name, 0) + desired_replicas
 
         # Sort by replica count
         sorted_services = sorted(service_pod_counts.items(), key=lambda x: x[1], reverse=True)
 
-        # Print results for the current cluster
+        # Create and print PrettyTable for the current cluster
         print(f"\n\nCluster: {cluster['config'].split('--name')[-1].strip()}")
+
+        table = PrettyTable()
+        table.field_names = ["Namespace/ServiceName", "PodCount"]
         for service, count in sorted_services:
-            print(f"  ServiceName: {service}, PodCount: {count}")
+            table.add_row([service, count])
+
+        print(table)
         print("\n")
 
 if __name__ == "__main__":
     get_pod_count_per_service_for_all_clusters()
-
