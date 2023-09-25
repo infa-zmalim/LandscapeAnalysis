@@ -51,7 +51,7 @@ def get_pods_per_node():
                 f"{int(pod['memory_requests'])}"
             ]
 
-            if pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp"):
+            if pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idcmp"):
                 row = [color_text(cell, '32') for cell in row]  # 32 is the ANSI code for green
 
             table.add_row(row)
