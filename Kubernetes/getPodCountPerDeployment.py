@@ -21,15 +21,16 @@ def get_pod_count_and_resources_per_deployment_for_all_clusters():
             deployments_output = run_command(f"kubectl get deployments -n {namespace_name} -o json")
             deployments_json = json.loads(deployments_output)
 
+            all_deployments[namespace_name] = {}
+
             for deployment in deployments_json['items']:
                 deployment_name = deployment['metadata']['name']
-                full_name = f"{namespace_name}/{deployment_name}"
 
-                if full_name not in all_deployments:
-                    all_deployments[full_name] = {
+                if deployment_name not in all_deployments[namespace_name]:
+                    all_deployments[namespace_name][deployment_name] = {
                         "count": 0, "cpu": 0, "memory": 0, "cpu_limit": 0, "memory_limit": 0}
 
-                all_deployments[full_name]['count'] += deployment['spec'].get('replicas', 0)
+                all_deployments[namespace_name][deployment_name]['count'] += deployment['spec'].get('replicas', 0)
 
                 containers = deployment['spec']['template']['spec']['containers']
                 for container in containers:
@@ -41,10 +42,10 @@ def get_pod_count_and_resources_per_deployment_for_all_clusters():
                     cpu_limit = parse_cpu(limits.get('cpu', '0'))
                     memory_limit = parse_memory(limits.get('memory', '0'))
 
-                    all_deployments[full_name]['cpu'] += cpu_request
-                    all_deployments[full_name]['memory'] += memory_request
-                    all_deployments[full_name]['cpu_limit'] += cpu_limit
-                    all_deployments[full_name]['memory_limit'] += memory_limit
+                    all_deployments[namespace_name][deployment_name]['cpu'] += cpu_request
+                    all_deployments[namespace_name][deployment_name]['memory'] += memory_request
+                    all_deployments[namespace_name][deployment_name]['cpu_limit'] += cpu_limit
+                    all_deployments[namespace_name][deployment_name]['memory_limit'] += memory_limit
 
                     if cpu_request != cpu_limit or memory_request != memory_limit:
                         cluster_name = cluster['config'].split('--name')[-1].strip()
@@ -60,9 +61,18 @@ def get_pod_count_and_resources_per_deployment_for_all_clusters():
         print(f"\n\nCluster: {cluster['config'].split('--name')[-1].strip()}")
 
         table = PrettyTable()
-        table.field_names = ["Namespace/Service", "PodCount", "CPURequests (cores)", "MemoryRequests (Mi)", "CPULimits (cores)", "MemoryLimits (Mi)"]
-        for deployment, info in all_deployments.items():
-            table.add_row([deployment, info['count'], f"{info['cpu']:.2f}", f"{info['memory']:.2f}", f"{info['cpu_limit']:.2f}", f"{info['memory_limit']:.2f}"])
+        table.field_names = ["Namespace", "Service", "PodCount", "CPURequests (cores)", "MemoryRequests (Mi)", "CPULimits (cores)", "MemoryLimits (Mi)"]
+
+        flattened_deployments = [(namespace, service, info) for namespace, services in all_deployments.items() for service, info in services.items()]
+        flattened_deployments.sort(key=lambda x: x[2]['count'], reverse=True)
+
+        for namespace, service, info in flattened_deployments:
+            row_data = [namespace, service, info['count'], f"{info['cpu']:.2f}", f"{info['memory']:.2f}", f"{info['cpu_limit']:.2f}", f"{info['memory_limit']:.2f}"]
+
+            if info['cpu'] != info['cpu_limit'] or info['memory'] != info['memory_limit']:
+                row_data = [f"\033[1m{data}\033[0m" for data in row_data]
+
+            table.add_row(row_data)
 
         print(table)
 
