@@ -4,7 +4,7 @@ import yaml
 
 from Kubernetes.getPodCountPerDeployment import run_command
 
-with open('resources/clusters.yaml', 'r') as file:
+with open('resources/NON-PROD_clusters.yaml', 'r') as file:
     clusters = yaml.safe_load(file)
 
 def get_service_names(namespace):

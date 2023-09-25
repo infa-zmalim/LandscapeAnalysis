@@ -5,7 +5,7 @@ from Kubernetes.utils import parse_cpu, parse_memory, run_command
 
 
 def get_pod_count_and_resources_per_deployment_for_all_clusters():
-    with open('resources/clusters.yaml', 'r') as file:
+    with open('resources/NON-PROD_clusters.yaml', 'r') as file:
         clusters = yaml.safe_load(file)
 
     for cluster in clusters:
