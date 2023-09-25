@@ -3,13 +3,26 @@ from collections import defaultdict
 from prettytable import PrettyTable
 from Kubernetes.utils import parse_memory, parse_cpu, run_command
 
-
 def color_text(text, color_code):
     """Add ANSI color codes to text."""
     return f"\033[{color_code}m{text}\033[0m"
 
+def get_node_capacity():
+    nodes_output = run_command("kubectl get nodes -o json")
+    nodes_json = json.loads(nodes_output)
+
+    node_capacity = {}
+    for node in nodes_json['items']:
+        node_name = node['metadata']['name']
+        cpu_capacity = parse_cpu(node['status']['capacity']['cpu'])
+        memory_capacity = parse_memory(node['status']['capacity']['memory']) * 1024  # Assuming parse_memory returns GiB
+        node_capacity[node_name] = {"cpu": cpu_capacity, "memory": memory_capacity}
+
+    return node_capacity
 
 def get_pods_per_node():
+    node_capacity = get_node_capacity()
+
     pods_output = run_command("kubectl get pods --all-namespaces -o json")
     pods_json = json.loads(pods_output)
 
@@ -39,8 +52,13 @@ def get_pods_per_node():
 
     for node, pods in pods_per_node.items():
         table = PrettyTable()
-        table.field_names = ["Node", "Namespace", "Pod", "CPURequests (cores)", "MemoryRequests (Mi)"]
+        table.field_names = ["Node", "Namespace", "Pod", "CPURequests (cores)", "MemoryRequests (Mi)", "CDGC CPU % Utilization", "CDGC Mem % Utilization"]
         table.align = "l"
+
+        selected_cpu = 0
+        selected_memory = 0
+
+        is_selected_namespace = any(pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp") for pod in pods)
 
         for pod in pods:
             row = [
@@ -48,21 +66,29 @@ def get_pods_per_node():
                 pod['namespace'],
                 pod['pod_name'],
                 f"{pod['cpu_requests']:.2f}",
-                f"{int(pod['memory_requests'])}"
+                f"{int(pod['memory_requests'])}",
+                '',
+                ''
             ]
 
-            if pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idcmp"):
+            if pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp"):
                 row = [color_text(cell, '32') for cell in row]  # 32 is the ANSI code for green
+                selected_cpu += pod['cpu_requests']
+                selected_memory += pod['memory_requests']
 
             table.add_row(row)
 
-        total_cpu = sum(pod['cpu_requests'] for pod in pods)
-        total_memory = sum(pod['memory_requests'] for pod in pods)
-        table.add_row(["", "Total", len(pods), f"{total_cpu:.2f}", f"{int(total_memory)}"])
+        cpu_utilization = f"{(selected_cpu / node_capacity[node]['cpu']) * 100:.2f}%"
+        memory_utilization = f"{(selected_memory / node_capacity[node]['memory']) * 100:.2f}%"
+
+        if is_selected_namespace:
+            cpu_utilization = color_text(cpu_utilization, '32')
+            memory_utilization = color_text(memory_utilization, '32')
+
+        table.add_row(["", "Total", len(pods), "", "", cpu_utilization, memory_utilization])
 
         print(table)
         print()
-
 
 if __name__ == "__main__":
     get_pods_per_node()
