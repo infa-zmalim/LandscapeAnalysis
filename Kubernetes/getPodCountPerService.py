@@ -17,7 +17,8 @@ def get_pod_count_per_service_for_all_clusters():
         namespaces_output = run_command("kubectl get namespaces -o json")
         namespaces_json = json.loads(namespaces_output)
 
-        service_pod_counts = {}
+        # Initialize a list to store service pod count along with namespace and service name
+        service_pod_counts = []
 
         # Iterate over each namespace
         for namespace_item in namespaces_json['items']:
@@ -27,25 +28,30 @@ def get_pod_count_per_service_for_all_clusters():
             deployments_output = run_command(f"kubectl get deployments -n {namespace_name} -o json")
             deployments_json = json.loads(deployments_output)
 
-            # Extract the deployment name and desired replicas
+            # Extract the deployment name, namespace name and desired replicas
             for deployment in deployments_json['items']:
                 deployment_name = deployment['metadata']['name']
-                # Extracting service name from deployment name using a temporary variable
-                temp_service_name = re.sub(r'-\d+-\d+-\d+-\d+$', '', deployment_name)
-                service_name = f"{namespace_name}/{temp_service_name}"
+                # Extracting service name from deployment name
+                service_name = re.sub(r'-\d+-\d+-\d+-\d+$', '', deployment_name)
                 desired_replicas = deployment['spec'].get('replicas', 0)
-                service_pod_counts[service_name] = service_pod_counts.get(service_name, 0) + desired_replicas
 
-        # Sort by replica count
-        sorted_services = sorted(service_pod_counts.items(), key=lambda x: x[1], reverse=True)
+                # Append the details to the service_pod_counts list
+                service_pod_counts.append({
+                    "Namespace": namespace_name,
+                    "ServiceName": service_name,
+                    "PodCount": desired_replicas
+                })
+
+        # Sort the list by PodCount
+        sorted_services = sorted(service_pod_counts, key=lambda x: x["PodCount"], reverse=True)
 
         # Create and print PrettyTable for the current cluster
         print(f"\n\nCluster: {cluster['config'].split('--name')[-1].strip()}")
 
         table = PrettyTable()
-        table.field_names = ["Namespace/ServiceName", "PodCount"]
-        for service, count in sorted_services:
-            table.add_row([service, count])
+        table.field_names = ["Namespace", "ServiceName", "PodCount"]
+        for service in sorted_services:
+            table.add_row([service["Namespace"], service["ServiceName"], service["PodCount"]])
 
         print(table)
         print("\n")
