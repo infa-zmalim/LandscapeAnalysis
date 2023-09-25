@@ -2,7 +2,6 @@ import re
 from collections import Counter
 import yaml
 from prettytable import PrettyTable  # Importing PrettyTable
-
 from Kubernetes.utils import run_command
 
 with open('resources/NON-PROD_clusters.yaml', 'r') as file:
@@ -22,15 +21,15 @@ def main():
         for namespace in cluster["namespaces"]:
             results = get_service_names(namespace)
 
-            print(f"\n\nResults for Cluster: {cluster['config'].split('--name')[-1].strip()}, Namespace: {namespace}:")
+            print(f"\n\nResults for Cluster: {cluster['config'].split('--name')[-1].strip()}:")
 
             # Creating a PrettyTable object and setting field names
             table = PrettyTable()
-            table.field_names = ["Service", "Count"]
+            table.field_names = ["Namespace", "Service", "Count"]  # Added Namespace as a field name
 
             for service, count in results:
                 # Adding rows to the PrettyTable object
-                table.add_row([service, count])
+                table.add_row([namespace, service, count])  # Added namespace as a column value
 
             # Printing the PrettyTable
             print(table)
