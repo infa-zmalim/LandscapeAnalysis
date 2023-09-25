@@ -1,24 +1,21 @@
 import json
 from collections import defaultdict
-
+from prettytable import PrettyTable  # Import PrettyTable
 from Kubernetes.utils import parse_memory, parse_cpu, run_command
 
 
 def get_pods_per_node():
-    # Fetch all pods in all namespaces
     pods_output = run_command("kubectl get pods --all-namespaces -o json")
     pods_json = json.loads(pods_output)
 
-    # Initialize a dictionary to hold the pod information per node
     pods_per_node = defaultdict(list)
 
-    # Iterate over each pod and append it to the corresponding node list
     for pod in pods_json['items']:
         node_name = pod['spec'].get('nodeName')
         pod_name = pod['metadata']['name']
         namespace = pod['metadata']['namespace']
 
-        if node_name:  # Only append pods that are assigned to a node
+        if node_name:
             cpu_requests = 0
             memory_requests = 0
             containers = pod['spec']['containers']
@@ -35,20 +32,30 @@ def get_pods_per_node():
                 "memory_requests": memory_requests,
             })
 
-    # Calculate the maximum length for proper alignment
-    max_length = max(len(pod['namespace'] + ', ' + pod['pod_name']) for node, pods in pods_per_node.items() for pod in pods)
-
-    # Print the result
-    header_format = "{:<" + str(max_length) + "} {:<30} {:<20} {:<20}"
-    row_format = "  {:<" + str(max_length) + "} {:<30} {:<20.2f} {:<20}"
-
-    print(f"{'Node':<{max_length}} PodCount, CPURequests (cores), MemoryRequests (Mi)")
-    print('-' * (max_length + 60))
     for node, pods in pods_per_node.items():
-        print(header_format.format(node, len(pods), '', ''))
+        table = PrettyTable()
+        table.field_names = ["Node", "Namespace", "Pod", "CPURequests (cores)", "MemoryRequests (Mi)"]
+        table.align = "l"
+
+        # Add a row for each pod in the node
         for pod in pods:
-            print(row_format.format(pod['namespace'] + ', ' + pod['pod_name'], '', pod['cpu_requests'], pod['memory_requests']))
+            row = [
+                node if pod is pods[0] else '',  # Only display node name in the first row
+                pod['namespace'],
+                pod['pod_name'],
+                f"{pod['cpu_requests']:.2f}",
+                f"{int(pod['memory_requests'])}"  # Changed to display without decimal values
+            ]
+            table.add_row(row)
+
+        # Add an additional row for the totals
+        total_cpu = sum(pod['cpu_requests'] for pod in pods)
+        total_memory = sum(pod['memory_requests'] for pod in pods)
+        table.add_row(["", "Total", len(pods), f"{total_cpu:.2f}", f"{int(total_memory)}"])
+
+        print(table)
         print()
+
 
 if __name__ == "__main__":
     get_pods_per_node()
