@@ -1,7 +1,12 @@
 import json
 from collections import defaultdict
-from prettytable import PrettyTable  # Import PrettyTable
+from prettytable import PrettyTable
 from Kubernetes.utils import parse_memory, parse_cpu, run_command
+
+
+def color_text(text, color_code):
+    """Add ANSI color codes to text."""
+    return f"\033[{color_code}m{text}\033[0m"
 
 
 def get_pods_per_node():
@@ -37,18 +42,20 @@ def get_pods_per_node():
         table.field_names = ["Node", "Namespace", "Pod", "CPURequests (cores)", "MemoryRequests (Mi)"]
         table.align = "l"
 
-        # Add a row for each pod in the node
         for pod in pods:
             row = [
-                node if pod is pods[0] else '',  # Only display node name in the first row
+                node if pod is pods[0] else '',
                 pod['namespace'],
                 pod['pod_name'],
                 f"{pod['cpu_requests']:.2f}",
-                f"{int(pod['memory_requests'])}"  # Changed to display without decimal values
+                f"{int(pod['memory_requests'])}"
             ]
+
+            if pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp"):
+                row = [color_text(cell, '32') for cell in row]  # 32 is the ANSI code for green
+
             table.add_row(row)
 
-        # Add an additional row for the totals
         total_cpu = sum(pod['cpu_requests'] for pod in pods)
         total_memory = sum(pod['memory_requests'] for pod in pods)
         table.add_row(["", "Total", len(pods), f"{total_cpu:.2f}", f"{int(total_memory)}"])
