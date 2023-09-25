@@ -2,7 +2,7 @@ import re
 from collections import Counter
 import yaml
 
-from Kubernetes.getPodCountPerDeployment import run_command
+from Kubernetes.utils import run_command
 
 with open('resources/NON-PROD_clusters.yaml', 'r') as file:
     clusters = yaml.safe_load(file)
