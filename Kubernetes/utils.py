@@ -20,8 +20,10 @@ def parse_cpu(cpu):
     return float(cpu)
 
 def run_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    output, error = process.communicate()
-    if error and "No resources found" not in error.decode('utf-8'):
-        raise Exception(error.decode('utf-8'))
-    return output.decode('utf-8')
+    try:
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output = result.stdout
+        return output.decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: {e.stderr.decode('utf-8')}")
+        raise

@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import yaml
 from prettytable import PrettyTable
+
 from Kubernetes.utils import parse_memory, parse_cpu, run_command
 
 
@@ -57,6 +58,9 @@ def get_pods_per_node(cluster_name):
             })
 
     for node, pods in pods_per_node.items():
+        if node not in node_capacity:
+            print(f"Warning: Node {node} not found in node_capacity")
+            continue
         table = PrettyTable()
         table.field_names = ["Cluster", "Node", "Namespace", "Pod", "CPURequests (cores)", "MemoryRequests (Mi)",
                              "CDGC CPU % Utilization", "CDGC Mem % Utilization",
@@ -69,7 +73,8 @@ def get_pods_per_node(cluster_name):
         total_memory = 0
 
         is_selected_namespace = any(
-            pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp") or pod['namespace'].startswith("gpt") for pod in pods)
+            pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp") or pod['namespace'].startswith(
+                "gpt") for pod in pods)
 
         for pod in pods:
             row = [
@@ -85,7 +90,8 @@ def get_pods_per_node(cluster_name):
                 ''
             ]
 
-            if pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp") or pod['namespace'].startswith("gpt"):
+            if pod['namespace'].startswith("ccgf") or pod['namespace'].startswith("idmcp") or pod[
+                'namespace'].startswith("gpt"):
                 row = [color_text(cell, '32') for cell in row]
                 selected_cpu += pod['cpu_requests']
                 selected_memory += pod['memory_requests']
@@ -113,7 +119,7 @@ def get_pods_per_node(cluster_name):
 
 
 def get_pods_per_all_clusters():
-    with open('resources/NON-PROD_clusters.yaml', 'r') as file:
+    with open('resources/AZURE_NON-PROD_clusters.yaml', 'r') as file:
         clusters_data = yaml.safe_load(file)
     for cluster in clusters_data:
         cluster_name = cluster.get('name', 'Unknown Cluster')

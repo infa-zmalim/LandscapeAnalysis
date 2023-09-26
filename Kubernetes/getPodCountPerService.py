@@ -6,7 +6,7 @@ from Kubernetes.utils import run_command
 
 def get_pod_count_per_service_for_all_clusters():
     # Load clusters from clusters.yaml
-    with open('resources/NON-PROD_clusters.yaml', 'r') as file:
+    with open('resources/AWS_NON-PROD_clusters.yaml', 'r') as file:
         clusters = yaml.safe_load(file)
 
     for cluster in clusters:

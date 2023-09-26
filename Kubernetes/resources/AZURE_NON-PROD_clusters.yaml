@@ -1,0 +1,7 @@
+- name: "dqgcloud-ccgf-aks-qa-westus2"
+  config: "az aks get-credentials --resource-group DQGCLOUD-QA-USWEST2-AKS-RG --name dqgcloud-ccgf-aks-qa-westus2"
+  namespaces:
+    - "ccgf-qa-argowfrel1"
+    - "ccgf-qa-orchestrationjobsrel1"
+    - "ccgf-qa-rel1"
+    - "idmcp-qa-rel1"

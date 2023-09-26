@@ -4,8 +4,9 @@ import yaml
 from prettytable import PrettyTable  # Importing PrettyTable
 from Kubernetes.utils import run_command
 
-with open('resources/NON-PROD_clusters.yaml', 'r') as file:
+with open('resources/AZURE_NON-PROD_clusters.yaml', 'r') as file:
     clusters = yaml.safe_load(file)
+    print(clusters)
 
 def get_service_names(namespace):
     cmd_output = run_command(f"kubectl get deployment -n {namespace}")
