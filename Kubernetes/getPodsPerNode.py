@@ -1,4 +1,5 @@
 import json
+import yaml
 from collections import defaultdict
 from prettytable import PrettyTable
 from Kubernetes.utils import parse_memory, parse_cpu, run_command
@@ -90,5 +91,27 @@ def get_pods_per_node():
         print(table)
         print()
 
+import subprocess
+
+def get_pods_per_all_clusters():
+    with open('resources/NON-PROD_clusters.yaml', 'r') as file:
+        clusters_data = yaml.safe_load(file)
+
+    print("Clusters Data:", clusters_data)
+
+    for cluster in clusters_data:
+        config_command = cluster.get('config')
+        if config_command:
+            print(f"Executing config command: {config_command}")
+            # Run the config command to set the kubeconfig context
+            subprocess.run(config_command, shell=True, check=True)
+            print("Fetching pods for the configured cluster:")
+            get_pods_per_node()
+            print()
+        else:
+            print("Config command not found in cluster:", cluster)
+
 if __name__ == "__main__":
-    get_pods_per_node()
+    get_pods_per_all_clusters()
+
+
