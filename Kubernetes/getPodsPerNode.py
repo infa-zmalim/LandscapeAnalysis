@@ -2,10 +2,9 @@ import json
 import subprocess
 from collections import defaultdict
 
-import yaml
 from prettytable import PrettyTable
 
-from Kubernetes.utils import parse_memory, parse_cpu, run_command
+from Kubernetes.utils.utils import parse_memory, parse_cpu, run_command, clusters
 
 
 def color_text(text, color_code):
@@ -119,17 +118,15 @@ def get_pods_per_node(cluster_name):
 
 
 def get_pods_per_all_clusters():
-    with open('resources/AZURE_NON-PROD_clusters.yaml', 'r') as file:
-        clusters_data = yaml.safe_load(file)
-    for cluster in clusters_data:
+    for cluster in clusters:
         cluster_name = cluster.get('name', 'Unknown Cluster')
+        # if cluster_name == 'intcloud-ccgf-eks-devprod-usw2':
         config_command = cluster.get('config')
         if config_command:
             subprocess.run(config_command, shell=True, check=True)
             get_pods_per_node(cluster_name)
         else:
             print("Config command not found in cluster:", cluster)
-
 
 if __name__ == "__main__":
     get_pods_per_all_clusters()

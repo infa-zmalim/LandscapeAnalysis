@@ -1,9 +1,5 @@
-import yaml
-from Kubernetes.utils import run_command
+from Kubernetes.utils.utils import run_command, clusters
 
-# Load clusters from YAML file
-with open('resources/AWS_NON-PROD_clusters.yaml', 'r') as file:
-    clusters = yaml.safe_load(file)
 
 def get_hpa(namespace):
     # Fetch HPAs from Kubernetes namespace

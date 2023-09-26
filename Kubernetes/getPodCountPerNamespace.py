@@ -1,14 +1,9 @@
 import json
-import yaml
 
-from Kubernetes.utils import run_command
+from Kubernetes.utils.utils import run_command, clusters
 
 
 def get_running_pods_in_namespaces():
-    # Load clusters from clusters.yaml
-    with open('resources/AZURE_NON-PROD_clusters.yaml', 'r') as file:
-        clusters = yaml.safe_load(file)
-
     for cluster in clusters:
         # Update kubeconfig for the current cluster
         run_command(cluster["config"])

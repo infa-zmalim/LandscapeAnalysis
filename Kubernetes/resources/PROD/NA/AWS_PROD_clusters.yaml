@@ -1,0 +1,7 @@
+- name: "intcloud-ccgfm1-eks-prod-usw2"
+  config: "aws eks update-kubeconfig --region us-west-2 --name intcloud-ccgfm1-eks-prod-usw2"
+  namespaces:
+    - "ccgf-prod-cmdfs"
+    - "ccgf-prod-cmdfp"
+    - "ccgf-prod-orchestrationjobs"
+

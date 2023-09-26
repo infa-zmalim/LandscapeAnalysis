@@ -1,14 +1,10 @@
 import json
-import yaml
 import re
 from prettytable import PrettyTable
-from Kubernetes.utils import run_command
+from Kubernetes.utils.utils import run_command, clusters
+
 
 def get_pod_count_per_service_for_all_clusters():
-    # Load clusters from clusters.yaml
-    with open('resources/AWS_NON-PROD_clusters.yaml', 'r') as file:
-        clusters = yaml.safe_load(file)
-
     for cluster in clusters:
         # Update kubeconfig for the current cluster
         run_command(cluster["config"])

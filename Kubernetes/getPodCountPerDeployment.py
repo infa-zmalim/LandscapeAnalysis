@@ -1,12 +1,11 @@
 import json
-import yaml
+
 from prettytable import PrettyTable
-from Kubernetes.utils import parse_cpu, parse_memory, run_command
+
+from Kubernetes.utils.utils import parse_cpu, parse_memory, run_command, clusters
+
 
 def get_pod_count_and_resources_per_deployment_for_all_clusters():
-    with open('resources/AWS_NON-PROD_clusters.yaml', 'r') as file:
-        clusters = yaml.safe_load(file)
-
     services_with_different_limits_and_requests = []
 
     for cluster in clusters:
@@ -61,15 +60,18 @@ def get_pod_count_and_resources_per_deployment_for_all_clusters():
         print(f"\n\nCluster: {cluster['config'].split('--name')[-1].strip()}")
 
         table = PrettyTable()
-        table.field_names = ["Namespace", "Service", "PodCount", "CPURequests (cores)", "MemoryRequests (Mi)", "CPULimits (cores)", "MemoryLimits (Mi)"]
+        table.field_names = ["Namespace", "Service", "PodCount", "CPURequests (cores)", "MemoryRequests (Mi)",
+                             "CPULimits (cores)", "MemoryLimits (Mi)"]
 
-        flattened_deployments = [(namespace, service, info) for namespace, services in all_deployments.items() for service, info in services.items()]
+        flattened_deployments = [(namespace, service, info) for namespace, services in all_deployments.items() for
+                                 service, info in services.items()]
         flattened_deployments.sort(key=lambda x: x[2]['count'], reverse=True)
 
         for namespace, service, info in flattened_deployments:
-            row_data = [namespace, service, info['count'], f"{info['cpu']:.2f}", f"{info['memory']}", f"{info['cpu_limit']:.2f}", f"{info['memory_limit']}"]
+            row_data = [namespace, service, info['count'], f"{info['cpu']:.2f}", f"{info['memory']}",
+                        f"{info['cpu_limit']:.2f}", f"{info['memory_limit']}"]
 
-            if  info['memory'] != info['memory_limit']:
+            if info['memory'] != info['memory_limit']:
                 row_data = [f"\033[91m{data}\033[0m" for data in row_data]
 
             table.add_row(row_data)
@@ -78,7 +80,8 @@ def get_pod_count_and_resources_per_deployment_for_all_clusters():
 
     print("\n\nServices with different request limits:")
     for service in services_with_different_limits_and_requests:
-        print(f"{service['name']} - CPURequest: {service['cpu_request']:.2f}, MemoryRequest: {service['memory_request']:.2f}, CPULimit: {service['cpu_limit']:.2f}, MemoryLimit: {service['memory_limit']:.2f}")
+        print(
+            f"{service['name']} - CPURequest: {service['cpu_request']:.2f}, MemoryRequest: {service['memory_request']:.2f}, CPULimit: {service['cpu_limit']:.2f}, MemoryLimit: {service['memory_limit']:.2f}")
 
 
 if __name__ == "__main__":
