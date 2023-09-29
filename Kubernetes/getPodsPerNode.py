@@ -2,9 +2,16 @@ import json
 import subprocess
 from collections import defaultdict
 
+import pandas as pd
 from prettytable import PrettyTable
 
 from Kubernetes.utils.utils import parse_memory, parse_cpu, run_command, clusters
+
+# Set display options for clearer output
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+pd.set_option('display.max_colwidth', None)
+pd.set_option('display.max_rows', None)
 
 
 def color_text(text, color_code):
@@ -121,17 +128,17 @@ def get_pods_per_node(cluster_name):
                        total_cpu_utilization, total_memory_utilization])
 
         print(table)
-        print()
-
 
 def get_pods_per_all_clusters():
     for cluster in clusters:
         cluster_name = cluster.get('name', 'Unknown Cluster')
+        # print(cluster_name)
         # if cluster_name == 'intcloud-ccgf-eks-devprod-usw2':
         config_command = cluster.get('config')
-    if config_command:
-        subprocess.run(config_command, shell=True, check=True)
-        get_pods_per_node(cluster_name)
+        if config_command:
+            print(f"Executing config command: {config_command}")
+            subprocess.run(config_command, shell=True, check=True)
+            get_pods_per_node(cluster_name)
     else:
         print("Config command not found in cluster:", cluster)
 
