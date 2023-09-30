@@ -110,12 +110,12 @@
       "filter": [
         {
           "match_phrase": {
-            "parsed.serviceName": "ccgf-searchv2"
+            "parsed.serviceName": "{{serviceName}}"
           }
         },
         {
           "match_phrase": {
-            "parsed.objectName": "HttpRequest"
+            "parsed.objectName": "{{objectName}}"
           }
         },
         {

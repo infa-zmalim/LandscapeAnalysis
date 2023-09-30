@@ -24,12 +24,14 @@ api_key = config.get('QA', 'apikey')
 # Fetch the time range from config.ini
 start_time = config.get('TimeRange', 'start_time')
 end_time = config.get('TimeRange', 'end_time')
+serviceName  = config.get('QueryParams','serviceName')
+objectName  = config.get('QueryParams','objectName')
 
 # Read the payload from the JSON file for the second request
 with open('QA/Resources/DSLSearchRequestsPerTenant.json', 'r') as file:
     payload = file.read()
     # Replace the placeholders with actual values
-    payload = payload.replace("{{start_time}}", start_time).replace("{{end_time}}", end_time)
+    payload = payload.replace("{{start_time}}", start_time).replace("{{end_time}}", end_time).replace("{{serviceName}}", serviceName).replace("{{objectName}}",objectName)
     payload = json.loads(payload)
 
 request_payload = json.dumps(payload)
