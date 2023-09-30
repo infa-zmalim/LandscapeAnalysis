@@ -2,7 +2,7 @@ import configparser
 import requests
 import json
 from urllib.parse import urljoin
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go  # <-- Import Plotly
 import os
 
 # Load the configuration file
@@ -36,6 +36,7 @@ headers = {
 print("Headers:", headers)
 
 print("Payload:", data)
+
 # Initialize response as None
 response = None
 
@@ -43,9 +44,6 @@ try:
     response = requests.post(full_url, headers=headers, data=data, cert=(cert_file_path, key_file_path))
 except requests.exceptions.RequestException as e:
     print("Error making the request:", e)
-# ...
-
-import matplotlib.pyplot as plt
 
 # Check the response
 if response is not None and response.status_code == 200:
@@ -64,12 +62,10 @@ if response is not None and response.status_code == 200:
         cluster_names = [bucket['key'] for bucket in buckets]
         record_counts = [bucket['doc_count'] for bucket in buckets]
 
-        # Create a donut plot
-        plt.figure(figsize=(10, 6))
-        plt.pie(record_counts, labels=cluster_names, autopct='%1.1f%%', startangle=140, wedgeprops=dict(width=0.4))
-        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        plt.title('Distribution of Records for each Cluster (Last Hour)')
-        plt.show()
+        # Create an interactive donut plot using Plotly
+        fig = go.Figure(data=[go.Pie(labels=cluster_names, values=record_counts, hole=.4)])
+        fig.update_layout(title_text='Distribution of Records for each Cluster (Last Hour)')
+        fig.show()
 
 else:
     print("Failed to retrieve data.")
