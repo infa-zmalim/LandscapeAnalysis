@@ -9,18 +9,32 @@ import numpy as np
 config = configparser.ConfigParser()
 config.read('config/config.ini')
 
+# Fetch the color palettes and convert them to lists
+graph_palette = config.get('ColorPalettes', 'ColourPalette').split(',')
+
+
 # Read the configuration parameters
 url = config.get('QA', 'url')
 cert_file_path = config.get('QA', 'cert_file_path')
 key_file_path = config.get('QA', 'key_file_path')
 api_key = config.get('QA', 'apikey')
 
+# Load the configuration file
+config = configparser.ConfigParser()
+config.read('config/config.ini')
+# Fetch the time range from config.ini
+start_time = config.get('TimeRange', 'start_time')
+end_time = config.get('TimeRange', 'end_time')
+
 # Read the payload from the JSON file
 with open('QA/Resources/DSLClusterCount.json', 'r') as file:
-    payload = json.load(file)
+    cluster_payload = file.read()
+    # Replace the placeholders with actual values
+    cluster_payload = cluster_payload.replace("{{start_time}}", start_time).replace("{{end_time}}", end_time)
+    cluster_payload = json.loads(cluster_payload)
 
-data = json.dumps(payload)
-
+cluster_payload_json = json.dumps(cluster_payload)
+print("cluster_payload_jsonc",cluster_payload_json)
 # Define the path
 path = "fluentbit-*-ccgf-*/_search"
 
@@ -34,41 +48,33 @@ headers = {
     "x-api-key": api_key
 }
 print("Headers:", headers)
-print("Payload:", data)
+print("Payload:", cluster_payload_json)
 
 # Initialize response as None
 response = None
 
 try:
-    response = requests.post(full_url, headers=headers, data=data, cert=(cert_file_path, key_file_path))
+    response = requests.post(full_url, headers=headers, data=cluster_payload_json, cert=(cert_file_path, key_file_path))
 except requests.exceptions.RequestException as e:
     print("Error making the request:", e)
 
 if response is not None and response.status_code == 200:
     print("Success!")
-    data = json.loads(response.text)
+    cluster_payload_json = json.loads(response.text)
 
-    if 'aggregations' not in data:
+    if 'aggregations' not in cluster_payload_json:
         print("No aggregations in the response. Please check the Elasticsearch query and index.")
-        print("Response:", json.dumps(data, indent=4))
+        print("Response:", json.dumps(cluster_payload_json, indent=4))
     else:
-        cluster_buckets = data["aggregations"]["0"]["buckets"]
+        cluster_buckets = cluster_payload_json["aggregations"]["0"]["buckets"]
         cluster_names = [bucket['key'] for bucket in cluster_buckets]
         cluster_counts = [bucket['doc_count'] for bucket in cluster_buckets]
 
-        # Pie Chart (Cluster Distribution) - 60%
-        pie_palette = ["#e27c7c", "#a86464", "#6d4b4b", "#503f3f", "#333333", "#3c4e4b", "#466964", "#599e94", "#6cd4c5"]
-
-        # Stacked Bar Chart (Object Names Breakdown by Cluster) - 30%
-        bar_palette = ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5",
-                       "#8bd3c7", "#e27c7c", "#a86464", "#6d4b4b", "#503f3f", "#333333", "#3c4e4b", "#466964",
-                       "#599e94", "#6cd4c5"]
-
         # Setting up the figure and subplots
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 7), gridspec_kw={'width_ratios': [6, 3, 1]})
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7), gridspec_kw={'width_ratios': [4, 6]})
 
-        ax1.pie(cluster_counts, labels=cluster_names, startangle=90, colors=pie_palette[:len(cluster_names)])
-        ax1.set_title('Distribution of Records for each Cluster (Last Hour)')
+        ax1.pie(cluster_counts, labels=cluster_names, startangle=90, colors=graph_palette[:len(cluster_names)])
+        ax1.set_title('Distribution of Records for each Cluster')
         ax1.axis('equal')
 
         unique_object_names = set()
@@ -76,7 +82,7 @@ if response is not None and response.status_code == 200:
             for obj in bucket["1"]["buckets"]:
                 unique_object_names.add(obj["key"])
 
-        color_map = dict(zip(unique_object_names, bar_palette[:len(unique_object_names)]))
+        color_map = dict(zip(unique_object_names, graph_palette[:len(unique_object_names)]))
 
         bottoms = np.zeros(len(cluster_names))
         for object_name in unique_object_names:
@@ -87,17 +93,14 @@ if response is not None and response.status_code == 200:
             ax2.bar(cluster_names, counts, bottom=bottoms, label=object_name, color=color_map[object_name])
             bottoms = [i+j for i, j in zip(bottoms, counts)]
 
-        ax2.set_title('Breakdown of Object Names for each Cluster (Last Hour)')
-        ax2.legend(loc='upper right')
+        ax2.set_title('Breakdown of Object Names for each Cluster')
+        ax2.legend(loc='upper left', bbox_to_anchor=(1, 1))
         ax2.set_xticks(range(len(cluster_names)))
         ax2.set_xticklabels(cluster_names, rotation=90)
 
-        # Accent Space (10%) - Placeholder
-        ax3.axis("off")
-        ax3.text(0.5, 0.5, 'Accent Space', ha='center', va='center', transform=ax3.transAxes, color='darkred')
-
         plt.tight_layout()
         plt.show()
+
 
 else:
     print("Failed to retrieve data.")
