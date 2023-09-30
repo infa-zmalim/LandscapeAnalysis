@@ -1,19 +1,78 @@
 {
-  "size": 0,
-  "query": {
-    "range": {
-      "@timestamp": {
-        "gte": "now-1h/h",
-        "lte": "now/h"
+  "aggs": {
+    "0": {
+      "terms": {
+        "field": "parsed.cluster_name",
+        "order": {
+          "_count": "desc"
+        },
+        "size": 500
+      },
+      "aggs": {
+        "1": {
+          "terms": {
+            "field": "parsed.objectName",
+            "order": {
+              "_count": "desc"
+            },
+            "size": 50
+          }
+        }
       }
     }
   },
-  "aggs": {
-    "clusters": {
-      "terms": {
-        "field": "parsed.cluster_name",
-        "size": 10
-      }
+  "size": 0,
+  "fields": [
+    {
+      "field": "@timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.datetime",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.istio.timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.start_time",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.time",
+      "format": "date_time"
+    }
+  ],
+  "script_fields": {},
+  "stored_fields": [
+    "*"
+  ],
+  "runtime_mappings": {},
+  "_source": {
+    "excludes": []
+  },
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "bool": {
+            "should": [],
+            "minimum_should_match": 1
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "now-1h/h",
+              "lte": "now-1h/h"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
     }
   }
 }
