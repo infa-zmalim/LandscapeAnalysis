@@ -9,7 +9,7 @@ def convert_to_lowercase(df, column_name):
     df[column_name] = df[column_name].str.lower()
 
 def convert_size_to_mb(size):
-    size_str = str(size)  # Convert the size to a string regardless of its original type
+    size_str = str(size).lower()  # Convert the size to a string regardless of its original type and lowercase it
 
     if 'kb' in size_str:
         return round(float(size_str.replace('kb', '')) / 1024, 2)
@@ -17,6 +17,8 @@ def convert_size_to_mb(size):
         return round(float(size_str.replace('mb', '')), 2)
     elif 'gb' in size_str:
         return round(float(size_str.replace('gb', '')) * 1024, 2)
+    elif 'tb' in size_str:
+        return round(float(size_str.replace('tb', '')) * 1024 * 1024, 2)  # Convert terabytes to megabytes
     elif 'b' in size_str:
         return round(float(size_str.replace('b', '')) / (1024 * 1024), 2)
     else:
@@ -24,7 +26,6 @@ def convert_size_to_mb(size):
             return round(float(size_str), 2)  # If no units are specified, assume it's already in MB
         except ValueError:
             return 0  # Or handle this case differently if needed
-
 
 # Modify volume column
 def modify_volume(value):

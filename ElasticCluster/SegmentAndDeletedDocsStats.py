@@ -8,7 +8,7 @@ from utility_functions import convert_size_to_mb, modify_volume, extract_tenant_
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
-pd.set_option('display.max_rows', None)
+pd.set_option('display.max_rows', 500)
 
 # Fetching data from the API for deleted docs stats
 indices_df = pd.DataFrame(requests.get(f'{BASE_URL}/_cat/indices/?format=json&v&s=store.size:desc').json())
@@ -69,8 +69,10 @@ if TMS_response.status_code == 200:
     # final_df.drop(columns=['tenantId', 'TMS_TenantId_lowercase', 'TMS_TenantId_lowercase', 'Telemetry_TenantId_lowercase'],inplace=True)
 
     # Print the filtered result
-#print(final_df)
+# print(final_df[final_df['index'] == 'devprod-9ibyw4vm3etgvfclpfcsob-mkg_document_store-ccgf-contentv2'])
+print(final_df[['index', 'segments_count', 'Tenant']])
+# print(final_df)
 
 # Output to a CSV
-final_df.to_csv('Output/CombinedStats_AUDIT_DEVPROD.csv', index=False)
-missing_tenants_df.to_csv('Output/MissingTenantsFromIndexButInTMS_AUDIT_DEVPROD.csv', index=False)
+# final_df.to_csv('Output/CombinedStats_AUDIT_DEVPROD.csv', index=False)
+# missing_tenants_df.to_csv('Output/MissingTenantsFromIndexButInTMS_AUDIT_DEVPROD.csv', index=False)
