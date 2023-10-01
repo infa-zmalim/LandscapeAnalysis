@@ -1,10 +1,5 @@
 import re
 
-import requests
-from config import tenant_api_base_url
-
-
-
 def convert_to_lowercase(df, column_name):
     df[column_name] = df[column_name].str.lower()
 
