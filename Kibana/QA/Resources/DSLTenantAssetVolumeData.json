@@ -1,0 +1,267 @@
+{
+  "aggs": {
+    "0": {
+      "terms": {
+        "field": "parsed.key2.key3",
+        "order": {
+          "2-bucket>2-metric[parsed.key2.key7n]": "desc"
+        },
+        "size": 2000
+      },
+      "aggs": {
+        "1": {
+          "terms": {
+            "field": "parsed.key2.key2",
+            "order": {
+              "5-bucket>5-metric[parsed.key2.key4n]": "desc"
+            },
+            "size": 2000
+          },
+          "aggs": {
+            "5-bucket": {
+              "filter": {
+                "bool": {
+                  "must": [],
+                  "filter": [
+                    {
+                      "bool": {
+                        "should": [
+                          {
+                            "exists": {
+                              "field": "parsed.key2.key4n"
+                            }
+                          }
+                        ],
+                        "minimum_should_match": 1
+                      }
+                    }
+                  ],
+                  "should": [],
+                  "must_not": []
+                }
+              },
+              "aggs": {
+                "5-metric": {
+                  "top_metrics": {
+                    "metrics": {
+                      "field": "parsed.key2.key4n"
+                    },
+                    "size": 1,
+                    "sort": {
+                      "@timestamp": "desc"
+                    }
+                  }
+                }
+              }
+            },
+            "2-bucket": {
+              "filter": {
+                "bool": {
+                  "must": [],
+                  "filter": [
+                    {
+                      "bool": {
+                        "should": [
+                          {
+                            "exists": {
+                              "field": "parsed.key2.key7n"
+                            }
+                          }
+                        ],
+                        "minimum_should_match": 1
+                      }
+                    }
+                  ],
+                  "should": [],
+                  "must_not": []
+                }
+              },
+              "aggs": {
+                "2-metric": {
+                  "top_metrics": {
+                    "metrics": {
+                      "field": "parsed.key2.key7n"
+                    },
+                    "size": 1,
+                    "sort": {
+                      "@timestamp": "desc"
+                    }
+                  }
+                }
+              }
+            },
+            "3-bucket": {
+              "filter": {
+                "bool": {
+                  "must": [],
+                  "filter": [
+                    {
+                      "bool": {
+                        "should": [
+                          {
+                            "exists": {
+                              "field": "parsed.key2.key8n"
+                            }
+                          }
+                        ],
+                        "minimum_should_match": 1
+                      }
+                    }
+                  ],
+                  "should": [],
+                  "must_not": []
+                }
+              },
+              "aggs": {
+                "3-metric": {
+                  "top_metrics": {
+                    "metrics": {
+                      "field": "parsed.key2.key8n"
+                    },
+                    "size": 1,
+                    "sort": {
+                      "@timestamp": "desc"
+                    }
+                  }
+                }
+              }
+            },
+            "4-bucket": {
+              "filter": {
+                "bool": {
+                  "must": [],
+                  "filter": [
+                    {
+                      "bool": {
+                        "should": [
+                          {
+                            "exists": {
+                              "field": "parsed.key2.key9n"
+                            }
+                          }
+                        ],
+                        "minimum_should_match": 1
+                      }
+                    }
+                  ],
+                  "should": [],
+                  "must_not": []
+                }
+              },
+              "aggs": {
+                "4-metric": {
+                  "top_metrics": {
+                    "metrics": {
+                      "field": "parsed.key2.key9n"
+                    },
+                    "size": 1,
+                    "sort": {
+                      "@timestamp": "desc"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "2-bucket": {
+          "filter": {
+            "bool": {
+              "must": [],
+              "filter": [
+                {
+                  "bool": {
+                    "should": [
+                      {
+                        "exists": {
+                          "field": "parsed.key2.key7n"
+                        }
+                      }
+                    ],
+                    "minimum_should_match": 1
+                  }
+                }
+              ],
+              "should": [],
+              "must_not": []
+            }
+          },
+          "aggs": {
+            "2-metric": {
+              "top_metrics": {
+                "metrics": {
+                  "field": "parsed.key2.key7n"
+                },
+                "size": 1,
+                "sort": {
+                  "@timestamp": "desc"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "size": 0,
+  "fields": [
+    {
+      "field": "@timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.datetime",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.istio.timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.start_time",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.time",
+      "format": "date_time"
+    }
+  ],
+  "script_fields": {},
+  "stored_fields": [
+    "*"
+  ],
+  "runtime_mappings": {},
+  "_source": {
+    "excludes": []
+  },
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "bool": {
+            "should": [
+              {
+                "match_phrase": {
+                  "parsed.messageId": "TenantAsset"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "format": "strict_date_optional_time",
+              "gte": "{{start_time}}",
+              "lte": "{{end_time}}"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
+    }
+  }
+}
