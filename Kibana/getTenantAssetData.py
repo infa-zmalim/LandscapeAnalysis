@@ -5,7 +5,13 @@ import pandas as pd
 import requests
 from ElasticCluster.utility_functions import modify_volume
 
+
 def get_tenant_asset_data():
+    # Set display options for clearer output
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', None)
+    pd.set_option('display.max_rows', None)
     # Load the configuration file
     config = configparser.ConfigParser()
     config.read('config/config.ini')
@@ -71,10 +77,12 @@ def get_tenant_asset_data():
 
         # Convert the list to a dataframe
         df = pd.DataFrame(df_data, columns=['Org', 'Tenant', 'Business Assets', 'Technical Assets', 'Marketplace', 'Total'])
+        df = df.sort_values(by='Total', ascending = False)
         # Apply the modify_volume function to the specified columns
         cols_to_modify = ['Business Assets', 'Technical Assets', 'Marketplace', 'Total']
         for col in cols_to_modify:
             df[col] = df[col].apply(modify_volume)
+
 
     return df
 
