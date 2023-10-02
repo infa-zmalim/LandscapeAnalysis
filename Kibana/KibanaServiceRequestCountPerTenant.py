@@ -3,8 +3,10 @@ import json
 from urllib.parse import urljoin
 import pandas as pd
 import requests
+import pandas as pd
 from ElasticCluster.config import tenant_api_base_url
 from ElasticCluster.utility_functions import modify_volume
+from Kibana import getTelemetryData  # Assuming telemetry_data.py is the name of the script that contains the modified function.
 
 # Importing get_tenant_asset_data function
 from Kibana import getTenantAssetData
@@ -18,7 +20,7 @@ def get_kibana_service_data():
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
     pd.set_option('display.max_colwidth', None)
-    pd.set_option('display.max_rows', 500)
+    pd.set_option('display.max_rows', 50)
 
     # Read the configuration parameters
     url = config.get('QA', 'url')
@@ -66,6 +68,7 @@ def get_kibana_service_data():
 
     all_tenants_data_TMS = TMS_response.json().get('value', [])
     all_tenants_TMS_df = pd.DataFrame(all_tenants_data_TMS)
+    all_tenants_TMS_df['tenantId'] = all_tenants_TMS_df['tenantId'].str.lower()
 
     merged_df = None
     if kibana_response and kibana_response.status_code == 200:
@@ -84,6 +87,7 @@ def get_kibana_service_data():
         cols_to_modify = [f'{serviceName} {objectName} requests', 'Count of 200s', 'Count of 500s']
         for col in cols_to_modify:
             df[col] = df[col].apply(modify_volume)
+        df['orgId'] = df['orgId'].str.lower()
         merged_df = pd.merge(df, all_tenants_TMS_df[['tenantId', 'name']], left_on='orgId', right_on='tenantId', how='left').drop('tenantId', axis=1)
 
     tenant_asset_df = getTenantAssetData.get_tenant_asset_data()
