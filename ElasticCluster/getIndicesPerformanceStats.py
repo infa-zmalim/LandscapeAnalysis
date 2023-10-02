@@ -1,10 +1,7 @@
 import pandas as pd
 import requests
-from Kibana.getTelemetryData import getTelemetrydata
-from Kibana import getTenantAssetData
 from Kibana.getTenantAssetData import get_tenant_asset_data
-from utility_functions import convert_size_to_mb, modify_volume, extract_tenant_id, extract_org_id
-import os
+from utility_functions import modify_volume, extract_tenant_id
 from config import BASE_URL
 
 # Set display options
