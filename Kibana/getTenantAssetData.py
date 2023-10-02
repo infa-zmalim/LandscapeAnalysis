@@ -1,5 +1,6 @@
 import configparser
 import json
+import os
 from urllib.parse import urljoin
 import pandas as pd
 import requests
@@ -14,13 +15,10 @@ def get_tenant_asset_data():
     pd.set_option('display.max_rows', None)
     # Load the configuration file
     config = configparser.ConfigParser()
-    config.read('config/config.ini')
-
-    # Set display options for clearer output
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-    pd.set_option('display.max_colwidth', None)
-    pd.set_option('display.max_rows', 500)
+    # Absolute path to config.ini
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(script_directory, 'config', 'config.ini')
+    config.read(config_path)
 
     # Read the configuration parameters
     url = config.get('QA', 'url')
@@ -31,8 +29,18 @@ def get_tenant_asset_data():
     end_time = config.get('TimeRange', 'end_time')
     serviceName  = config.get('QueryParams','serviceName')
 
+    cert_file_relative_path = config.get('QA', 'cert_file_path')
+    key_file_relative_path = config.get('QA', 'key_file_path')
+
+    # Construct full paths for cert_file_path and key_file_path
+    cert_file_path = os.path.join(script_directory, cert_file_relative_path)
+    key_file_path = os.path.join(script_directory, key_file_relative_path)
+
+    # Absolute path to DSLTenantAssetVolumeData.json
+    json_file_path = os.path.join(script_directory, 'QA', 'Resources', 'DSLTenantAssetVolumeData.json')
+
     # Read the payload from the JSON file for the second request
-    with open('QA/Resources/DSLTenantAssetVolumeData.json', 'r') as file:
+    with open(json_file_path, 'r') as file:
         payload = file.read()
         payload = payload.replace("{{start_time}}", start_time).replace("{{end_time}}", end_time)
         payload = json.loads(payload)
@@ -78,6 +86,7 @@ def get_tenant_asset_data():
         # Convert the list to a dataframe
         df = pd.DataFrame(df_data, columns=['Org', 'Tenant', 'Business Assets', 'Technical Assets', 'Marketplace', 'Total'])
         df = df.sort_values(by='Total', ascending = False)
+        df['Org'] = df['Org'].str.lower()
         # Apply the modify_volume function to the specified columns
         cols_to_modify = ['Business Assets', 'Technical Assets', 'Marketplace', 'Total']
         for col in cols_to_modify:
