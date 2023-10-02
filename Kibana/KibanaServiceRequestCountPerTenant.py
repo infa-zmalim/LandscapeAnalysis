@@ -7,7 +7,7 @@ from ElasticCluster.config import tenant_api_base_url
 from ElasticCluster.utility_functions import modify_volume
 
 # Importing get_tenant_asset_data function
-from Kibana import getTenatAssetData
+from Kibana import getTenantAssetData
 
 def get_kibana_service_data():
     # Load the configuration file
@@ -86,7 +86,7 @@ def get_kibana_service_data():
             df[col] = df[col].apply(modify_volume)
         merged_df = pd.merge(df, all_tenants_TMS_df[['tenantId', 'name']], left_on='orgId', right_on='tenantId', how='left').drop('tenantId', axis=1)
 
-    tenant_asset_df = getTenatAssetData.get_tenant_asset_data()
+    tenant_asset_df = getTenantAssetData.get_tenant_asset_data()
     final_df = pd.merge(merged_df, tenant_asset_df, left_on='orgId', right_on='Org', how='left')
 
     return final_df
