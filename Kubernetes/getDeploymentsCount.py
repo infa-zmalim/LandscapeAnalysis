@@ -2,7 +2,7 @@ from prettytable import PrettyTable
 from Kubernetes.utils.utils import run_command, clusters, get_service_names
 
 
-def main():
+def getDeploymentsCount():
     for cluster in clusters:
         run_command(cluster["config"])
         for namespace in cluster["namespaces"]:
@@ -16,7 +16,8 @@ def main():
             for service, count in results:
                 table.add_row([cluster['config'].split('--name')[-1].strip(),namespace, service, count])
 
-            print(table)
+            return table
 
 if __name__ == "__main__":
-    main()
+    getDeploymentsCount = getDeploymentsCount()
+    print(getDeploymentsCount)
