@@ -94,5 +94,9 @@ def get_log_details(traceId):
         print("No response or response has an error.")
 
 if __name__ == "__main__":
-    get_log_details_df = get_log_details()
+    # Load the configuration file
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+    traceId = config.get('QueryParams', 'traceId')
+    get_log_details_df = get_log_details(traceId)
     print(get_log_details_df)
