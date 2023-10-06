@@ -6,7 +6,6 @@ import requests
 import pandas as pd
 from ElasticCluster.config import tenant_api_base_url
 from ElasticCluster.utility_functions import modify_volume
-from Kibana import getTelemetryData  # Assuming telemetry_data.py is the name of the script that contains the modified function.
 
 # Importing get_tenant_asset_data function
 from Kibana import getTenantAssetData
