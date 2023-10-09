@@ -3,6 +3,9 @@
   namespaces:
     - "ccgf-devprod-hawk-func"
     - "ccgf-devprod-hawk-mgmt"
+    - "gpt-qa-mrelusw1"
+    - "gpt-qa-harnessgitops"
+    - "gpt-qa-harnessdelegate"
 - name: "intcloud-ccgf-eks-devci-usw2"
   config: "aws eks --region us-west-2 update-kubeconfig --name intcloud-ccgf-eks-devci-usw2"
   namespaces:
@@ -12,5 +15,7 @@
 - name: "intcloud-shrd-eks-qa-usw2"
   config: "aws eks --region us-west-2 update-kubeconfig --name intcloud-shrd-eks-qa-usw2"
   namespaces:
+    - "idmcp-qa-staging"
     - "ccgf-qa-staging"
     - "ccgf-qapatch-func"
+    - "ccgf-qapatch-mgmt"
