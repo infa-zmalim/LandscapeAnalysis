@@ -47,8 +47,7 @@ def run_command(command):
 
 
 def get_service_names(namespace):
-    cmd_output = run_command(f"kubectl get deployment -n {namespace} -o json")
-    deployments_data = json.loads(cmd_output)
+    deployments_data = get_deployments(namespace)
     service_names = []
 
     for deployment in deployments_data['items']:
@@ -64,8 +63,8 @@ def get_service_names(namespace):
 
 def get_deployments(namespace):
     """Fetch all deployments in a given namespace."""
-    cmd_output = run_command(f"kubectl get deployments -n {namespace} -o json")
-    return json.loads(cmd_output)
+    deployments = run_command(f"kubectl get deployments -n {namespace} -o json")
+    return json.loads(deployments)
 
 def get_hpas(namespace):
     """Fetch all HPAs in a given namespace."""
