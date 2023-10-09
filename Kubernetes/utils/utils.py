@@ -61,3 +61,13 @@ def get_service_names(namespace):
     counter = Counter(service_names)
     sorted_services = sorted(counter.items(), key=lambda x: x[1], reverse=True)
     return sorted_services
+
+def get_deployments(namespace):
+    """Fetch all deployments in a given namespace."""
+    cmd_output = run_command(f"kubectl get deployments -n {namespace} -o json")
+    return json.loads(cmd_output)
+
+def get_hpas(namespace):
+    """Fetch all HPAs in a given namespace."""
+    cmd_output = run_command(f"kubectl get hpa -n {namespace} -o json")
+    return json.loads(cmd_output)
