@@ -1,6 +1,3 @@
-import subprocess
-import json
-
 from Kubernetes.utils.utils import clusters, run_command, get_deployments, get_hpas
 
 
