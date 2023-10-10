@@ -1,19 +1,16 @@
-import configparser
 import json
+import os
 from urllib.parse import urljoin
 import pandas as pd
 import requests
-import pandas as pd
 from ElasticCluster.config import tenant_api_base_url
-from ElasticCluster.utility_functions import modify_volume
 
-# Importing get_tenant_asset_data function
-from Kibana import getTenantAssetData
+# Importing required functions and modules
+from Kibana.utils.utils import load_config
+from Kibana.getTenantAssetData import get_tenant_asset_data
 
 def get_kibana_service_data():
-    # Load the configuration file
-    config = configparser.ConfigParser()
-    config.read('config/config.ini')
+    configurations = load_config()  # Using the new load_config function
 
     # Set display options for clearer output
     pd.set_option('display.max_columns', None)
@@ -21,36 +18,34 @@ def get_kibana_service_data():
     pd.set_option('display.max_colwidth', None)
     pd.set_option('display.max_rows', 50)
 
-    # Read the configuration parameters
-    url = config.get('QA', 'url')
-    cert_file_path = config.get('QA', 'cert_file_path')
-    key_file_path = config.get('QA', 'key_file_path')
-    api_key = config.get('QA', 'apikey')
-    start_time = config.get('TimeRange', 'start_time')
-    end_time = config.get('TimeRange', 'end_time')
-    serviceName  = config.get('QueryParams','serviceName')
-    objectName  = config.get('QueryParams','objectName')
+    # Load configurations
+    url = configurations['url']
+    cert_file_path = configurations['cert_file_path']
+    key_file_path = configurations['key_file_path']
+    api_key = configurations['apikey']
+    start_time = configurations.get('start_time', '')
+    end_time = configurations.get('end_time', '')
+    serviceName = configurations.get('servicename', '')
+    objectName = configurations.get('objectname', '')
+    path = configurations.get('path', '')
 
-    # Read the payload from the JSON file for the second request
-    with open('QA/Resources/DSLSearchRequestsPerTenant.json', 'r') as file:
-        payload = file.read()
-        payload = payload.replace("{{start_time}}", start_time).replace("{{end_time}}", end_time).replace("{{serviceName}}", serviceName).replace("{{objectName}}", objectName)
+
+    # Fetch the JSON payload
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    json_file_path = os.path.join(script_directory, 'Resources', 'DSLSearchRequestsPerTenant.json')
+    with open(json_file_path, 'r') as file:
+        payload = file.read().replace("{{start_time}}", start_time).replace("{{end_time}}", end_time)
+        payload = payload.replace("{{serviceName}}", serviceName).replace("{{objectName}}", objectName)
         payload = json.loads(payload)
 
     request_payload = json.dumps(payload)
-
-    # Define the path
-    path = "fluentbit-*-ccgf-*/_search"
-
-    # Join the base URL with the path
     full_url = urljoin(url, path)
 
-    # Headers
     headers = {
         "Content-Type": "application/json",
         "x-api-key": api_key
     }
-
+    # print(json.dumps(request_payload, indent=4))
     # Send the request
     try:
         kibana_response = requests.post(full_url, headers=headers, data=request_payload, cert=(cert_file_path, key_file_path))
@@ -71,8 +66,8 @@ def get_kibana_service_data():
 
     merged_df = None
     if kibana_response and kibana_response.status_code == 200:
-        request_payload = kibana_response.json()
-        bucket_data = request_payload['aggregations']['0']['buckets']
+        response_payload = kibana_response.json()
+        bucket_data = response_payload.get('aggregations', {}).get('0', {}).get('buckets', [])
         table_data = []
 
         for item in bucket_data:
@@ -83,18 +78,18 @@ def get_kibana_service_data():
             table_data.append([org_id, doc_count, count_200, count_500])
 
         df = pd.DataFrame(table_data, columns=['orgId', f'{serviceName} {objectName} requests', 'Count of 200s', 'Count of 500s'])
-        cols_to_modify = [f'{serviceName} {objectName} requests', 'Count of 200s', 'Count of 500s']
-        for col in cols_to_modify:
-            df[col] = df[col].apply(modify_volume)
         df['orgId'] = df['orgId'].str.lower()
         merged_df = pd.merge(df, all_tenants_TMS_df[['tenantId', 'name']], left_on='orgId', right_on='tenantId', how='left').drop('tenantId', axis=1)
 
-    tenant_asset_df = getTenantAssetData.get_tenant_asset_data()
-    final_df = pd.merge(merged_df, tenant_asset_df, left_on='orgId', right_on='Org', how='left')
+        # Fetch tenant asset data
+        tenant_asset_df = get_tenant_asset_data(configurations)
+        final_df = pd.merge(merged_df, tenant_asset_df, left_on='orgId', right_on='Org', how='left')
+    else:
+        print(f"Failed to fetch data from Kibana. Status Code: {kibana_response.status_code if kibana_response else 'No Response'}")
+        final_df = None  # Or you can return an empty DataFrame or any other suitable default value
 
     return final_df
 
-# For debugging purposes
 if __name__ == "__main__":
     df = get_kibana_service_data()
     print(df)
