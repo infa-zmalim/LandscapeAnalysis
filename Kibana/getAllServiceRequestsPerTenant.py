@@ -93,3 +93,17 @@ def get_per_service_Request_data():
 if __name__ == "__main__":
     df = get_per_service_Request_data()
     print(df)
+    # Calculate the min, max, and average for each numeric column individually
+    numeric_columns = ['Total Requests', 'Count of 200s', 'Count of 500s']
+
+    for column in numeric_columns:
+        min_value = df[column].min()
+        max_value = df[column].max()
+        avg_value = df[column].mean()
+
+        # Print the statistics for the current column
+        print(f"Column: {column}")
+        print(f"Minimum Value: {min_value}")
+        print(f"Maximum Value: {max_value}")
+        print(f"Average Value: {avg_value}")
+        print("\n")
