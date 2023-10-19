@@ -92,18 +92,25 @@ def get_per_service_Request_data():
 
 if __name__ == "__main__":
     df = get_per_service_Request_data()
-    print(df)
-    # Calculate the min, max, and average for each numeric column individually
-    numeric_columns = ['Total Requests', 'Count of 200s', 'Count of 500s']
+    # print(df)
+    if df is not None:  # Check if df is not None
+        # Calculate the min, max, and average for each numeric column individually
+        numeric_columns = ['Total Requests', 'Count of 200s', 'Count of 500s', 'Business Assets', 'Technical Assets', 'Marketplace', 'Total']
 
-    for column in numeric_columns:
-        min_value = df[column].min()
-        max_value = df[column].max()
-        avg_value = df[column].mean()
+        for column in numeric_columns:
+            # Convert the column to numeric, replacing non-numeric values with NaN
+            df[column] = pd.to_numeric(df[column], errors='coerce')
 
-        # Print the statistics for the current column
-        print(f"Column: {column}")
-        print(f"Minimum Value: {min_value}")
-        print(f"Maximum Value: {max_value}")
-        print(f"Average Value: {avg_value}")
-        print("\n")
+            min_value = df[column].min().round(2)
+            max_value = df[column].max().round(2)
+            avg_value = df[column].mean().round(2)
+
+            # Print the statistics for the current column
+            print(f"Column: {column}")
+            print(f"Minimum Value: {min_value}")
+            print(f"Maximum Value: {max_value}")
+            print(f"Average Value: {avg_value}")
+            print("\n")
+    else:
+        print("Dataframe is None. Unable to perform calculations.")
+
