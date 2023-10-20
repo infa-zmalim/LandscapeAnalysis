@@ -1,0 +1,157 @@
+{
+  "aggs": {
+    "0": {
+      "terms": {
+        "field": "parsed.orgId",
+        "order": {
+          "2-bucket>2-metric": "desc"
+        },
+        "size": 12
+      },
+      "aggs": {
+        "1": {
+          "date_histogram": {
+            "field": "@timestamp",
+            "calendar_interval": "1h",
+            "time_zone": "Asia/Calcutta",
+            "extended_bounds": {
+              "min": "{{start_time}}",
+              "max": "{{end_time}}"
+            }
+          },
+          "aggs": {
+            "2-bucket": {
+              "filter": {
+                "bool": {
+                  "must": [],
+                  "filter": [
+                    {
+                      "bool": {
+                        "should": [
+                          {
+                            "term": {
+                              "parsed.objectName": {
+                                "value": "HttpRequest"
+                              }
+                            }
+                          }
+                        ],
+                        "minimum_should_match": 1
+                      }
+                    }
+                  ],
+                  "should": [],
+                  "must_not": []
+                }
+              },
+              "aggs": {
+                "2-metric": {
+                  "value_count": {
+                    "field": "parsed.objectName"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "2-bucket": {
+          "filter": {
+            "bool": {
+              "must": [],
+              "filter": [
+                {
+                  "bool": {
+                    "should": [
+                      {
+                        "term": {
+                          "parsed.objectName": {
+                            "value": "HttpRequest"
+                          }
+                        }
+                      }
+                    ],
+                    "minimum_should_match": 1
+                  }
+                }
+              ],
+              "should": [],
+              "must_not": []
+            }
+          },
+          "aggs": {
+            "2-metric": {
+              "value_count": {
+                "field": "parsed.objectName"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "size": 0,
+  "fields": [
+    {
+      "field": "@timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.datetime",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.istio.timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "parsed.time",
+      "format": "date_time"
+    }
+  ],
+  "script_fields": {},
+  "stored_fields": ["*"],
+  "runtime_mappings": {},
+  "_source": {
+    "excludes": []
+  },
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "bool": {
+            "must_not": [
+              {
+                "wildcard": {
+                  "parsed.key2.key1": "*QE*"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "format": "strict_date_optional_time",
+              "gte": "{{start_time}}",
+              "lte": "{{end_time}}"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": [
+        {
+          "match_phrase": {
+            "parsed.orgId": "system"
+          }
+        },
+        {
+          "match_phrase": {
+            "parsed.orgId": "$public"
+          }
+        }
+      ]
+    }
+  }
+}
