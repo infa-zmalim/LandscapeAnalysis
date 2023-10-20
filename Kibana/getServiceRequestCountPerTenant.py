@@ -4,12 +4,13 @@ from urllib.parse import urljoin
 import pandas as pd
 import requests
 from ElasticCluster.config import tenant_api_base_url
+from Kibana.getTMSTenantData import get_TMS_Tenant_data
 
 # Importing required functions and modules
 from Kibana.utils.utils import load_config
 from Kibana.getTenantAssetData import get_tenant_asset_data
 
-def get_kibana_service_data():
+def get_per_service_Request_data():
     configurations = load_config()  # Using the new load_config function
 
     # Set display options for clearer output
@@ -55,15 +56,7 @@ def get_kibana_service_data():
         kibana_response = None
 
     # Fetch all tenants
-    TMS_response = requests.get(tenant_api_base_url, headers={'accept': 'application/json'})
-    if TMS_response.status_code != 200:
-        print("Error fetching tenants:", TMS_response.status_code)
-        print(TMS_response.text)
-
-    all_tenants_data_TMS = TMS_response.json().get('value', [])
-    all_tenants_TMS_df = pd.DataFrame(all_tenants_data_TMS)
-    all_tenants_TMS_df['tenantId'] = all_tenants_TMS_df['tenantId'].str.lower()
-
+    all_tenants_TMS_df=get_TMS_Tenant_data()
     merged_df = None
     if kibana_response and kibana_response.status_code == 200:
         response_payload = kibana_response.json()
@@ -91,5 +84,16 @@ def get_kibana_service_data():
     return final_df
 
 if __name__ == "__main__":
-    df = get_kibana_service_data()
+    df = get_per_service_Request_data()
+    df = df.sort_values(by='Total', ascending=False)
     print(df)
+
+
+
+
+
+
+
+
+
+
