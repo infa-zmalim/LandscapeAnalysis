@@ -4,8 +4,9 @@ from urllib.parse import urljoin
 import pandas as pd
 import requests
 import matplotlib.pyplot as plt
-from ElasticCluster.config import tenant_api_base_url
+
 from Kibana.utils.utils import load_config
+import matplotlib.dates as mdates  # Added this import
 
 def get_timeseries_per_tenant_request_data():
     configurations = load_config()
@@ -43,10 +44,6 @@ def get_timeseries_per_tenant_request_data():
     try:
         kibana_response = requests.post(full_url, headers=headers, data=request_payload, cert=(cert_file_path, key_file_path))
         kibana_response.raise_for_status()
-
-        print("Kibana Response Status Code:", kibana_response.status_code)
-        # print("Kibana conent:", kibana_response.content)
-
         if kibana_response.status_code == 200:
             response_payload = kibana_response.json()
             bucket_data = response_payload.get('aggregations', {}).get('0', {}).get('buckets', [])
@@ -71,8 +68,11 @@ def get_timeseries_per_tenant_request_data():
                     data_dict[org_id]['doc_count'].append(doc_count)
                     data_dict[org_id]['metric_value'].append(metric_value)
 
+            # Convert the time strings to datetime objects
+            for org_id in data_dict:
+                data_dict[org_id]['time'] = [pd.to_datetime(t) for t in data_dict[org_id]['time']]
 
-        # Plot a line graph for each org ID with data
+            # Plot a line graph for each org ID with data
             for org_id, data in data_dict.items():
                 if data['time']:
                     plt.plot(data['time'], data['doc_count'], label=f'Org ID {org_id}')
@@ -81,9 +81,17 @@ def get_timeseries_per_tenant_request_data():
             plt.ylabel('Requests')
             plt.title('Requests Over Time')
             plt.xticks(rotation=45)
-            plt.legend()
 
+            # Format the x-axis
+            # Format the x-axis
+            date_format = mdates.DateFormatter('%d %b %H:%M')
+
+            ax = plt.gca()  # Get current axis
+            ax.xaxis.set_major_formatter(date_format)
+
+            plt.legend()
             plt.show()
+
     except requests.exceptions.RequestException as e:
         print("Error making the request:", e)
         kibana_response = None
