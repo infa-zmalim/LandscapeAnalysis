@@ -1,12 +1,10 @@
 import configparser
-import os
 import pandas as pd
 import requests
+from concurrent.futures import ThreadPoolExecutor
 
 def get_TMS_Tenant_data(tenant_api_base_url):
-    # Fetch all tenants
     TMS_response = requests.get(tenant_api_base_url, headers={'accept': 'application/json'})
-
     if TMS_response.status_code != 200:
         print(f"Error fetching tenants from {tenant_api_base_url}:", TMS_response.status_code)
         print(TMS_response.text)
@@ -17,25 +15,33 @@ def get_TMS_Tenant_data(tenant_api_base_url):
     all_tenants_TMS_df['tenantId'] = all_tenants_TMS_df['tenantId'].str.lower()
     return all_tenants_TMS_df
 
-if __name__ == "__main__":
-    # Read configuration
+def worker(base_url):
+    tenant_api_base_url = f"{base_url}/ccgf-tms/odata/v1/Tenants"
+    return get_TMS_Tenant_data(tenant_api_base_url)
+
+def get_all_tenants_data(config_path, sections):
     config = configparser.ConfigParser()
-    config.read('../ElasticCluster/config/config.ini')
+    config.read(config_path)
 
-    # Choose the sections you want to iterate over. You can modify this list.
-    desired_sections = ['AWS-PROD', 'Azure-PROD']
-
-    # DataFrame to hold data from all URLs
-    all_data = pd.DataFrame()
-
-    for section in desired_sections:
+    urls_to_fetch = []
+    for section in sections:
         if section in config:
             for key, base_url in config[section].items():
-                tenant_api_base_url = f"{base_url}/ccgf-tms/odata/v1/Tenants"
-                df = get_TMS_Tenant_data(tenant_api_base_url)
+                urls_to_fetch.append(base_url)
 
-                # Append the data to the combined DataFrame
-                all_data = all_data._append(df, ignore_index=True)
+    all_data = pd.DataFrame()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(worker, urls_to_fetch))
 
-    # Print combined data
-    print(all_data)
+    for df in results:
+        all_data = all_data._append(df, ignore_index=True)
+
+    return all_data
+
+def main():
+    desired_sections = ['AWS-PROD', 'Azure-PROD']
+    data = get_all_tenants_data('../ElasticCluster/config/config.ini', desired_sections)
+    print(data)
+
+if __name__ == "__main__":
+    main()
