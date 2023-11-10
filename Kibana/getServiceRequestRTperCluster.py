@@ -78,7 +78,24 @@ def get_response_times():
 
 if __name__ == "__main__":
     response_data = get_response_times()
+
+    # List to hold all the data
+    data = []
+
     for product, sub_products in response_data.items():
-        print(f"Product: {product}")
         for sub_product, value in sub_products.items():
-            print(f"\tSub-Product: {sub_product}, 95.0 Value: {value}")
+            # Check if value is not None, then round it off to two decimal places
+            if value is not None:
+                value = round(value, 2)
+            # Append the data as a dictionary to the list
+            data.append({
+                "Product": product,
+                "Sub-Product": sub_product,
+                "95.0 Value": value
+            })
+
+    # Create a DataFrame
+    df = pd.DataFrame(data)
+
+    # Now you can save this DataFrame to a CSV file or use it further as needed
+    print(df)
