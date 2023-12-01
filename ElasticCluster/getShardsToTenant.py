@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 from Kibana.getTenantAssetData import get_tenant_asset_data
+from Kibana.utils.utils import load_config
 from utility_functions import modify_volume, extract_tenant_id
 from config import BASE_URL
 
@@ -10,10 +11,10 @@ pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
 pd.set_option('display.max_rows',50)
 
-def getShardsToTenants():
+def getShardsToTenants(configurations):
     csv_df = pd.read_csv('./resources/DEVPROD/tenantUserNamesPwd.csv')
     valid_values = csv_df['Username'].unique()
-    telemetry_df = get_tenant_asset_data()
+    telemetry_df = get_tenant_asset_data(configurations)
     # telemetry_df = telemetry_df[telemetry_df['Tenant'].isin(valid_values)]
     shards_response = requests.get(f'{BASE_URL}/_cat/shards?h=index,node&format=json')
     shards_response.raise_for_status()  # Check if request was successful
@@ -28,5 +29,6 @@ def getShardsToTenants():
     print(node_index_counts_df)
 
 if __name__ == "__main__":
-    getShardsToTenants = getShardsToTenants()
+    configurations = load_config()
+    getShardsToTenants = getShardsToTenants(configurations)
     # print(getShardsToTenants)
