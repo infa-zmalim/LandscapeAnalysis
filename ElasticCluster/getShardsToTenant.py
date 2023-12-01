@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 from Kibana.getTenantAssetData import get_tenant_asset_data
 from Kibana.utils.utils import load_config
-from utility_functions import modify_volume, extract_tenant_id
+from utility_functions import extract_tenant_id
 from config import BASE_URL
 
 # Set display options
